@@ -1,6 +1,7 @@
 import logging
 from asyncio import Task
 from http import HTTPStatus
+from pathlib import Path
 from typing import (
     Any,
     AsyncGenerator,
@@ -42,6 +43,13 @@ from app.caching.redis_repo import RedisRepo
 from app.main import get_application
 from app.settings import settings
 from app.smartapp.smartapp import smartapp as smartapp_rpc
+
+
+@pytest.fixture(autouse=True)
+def create_smartapp_files() -> None:
+    path = Path("app/smartapp_files/static")
+    if not path.exists():
+        path.mkdir(parents=True)
 
 
 @pytest.fixture
