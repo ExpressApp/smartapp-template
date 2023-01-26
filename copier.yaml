@@ -33,3 +33,4 @@ _exclude:
     - "extensions"
     - ".git"
     - "copier.yml"
+    - "async-box.md"
