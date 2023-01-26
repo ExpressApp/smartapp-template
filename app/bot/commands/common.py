@@ -2,9 +2,7 @@
 
 
 from pybotx import Bot, HandlerCollector, IncomingMessage, SmartAppEvent
-from pybotx_smart_logger import wrap_system_event
 
-from app.settings import settings
 from app.smartapp.smartapp import smartapp
 
 collector = HandlerCollector()
@@ -12,8 +10,7 @@ collector = HandlerCollector()
 
 @collector.smartapp_event
 async def handle_smartapp_event(event: SmartAppEvent, bot: Bot) -> None:
-    with wrap_system_event(event, settings.DEBUG):
-        await smartapp.handle_smartapp_event(event, bot)
+    await smartapp.handle_smartapp_event(event, bot)
 
 
 @collector.command("/_test-redis-callback-repo", visible=False)

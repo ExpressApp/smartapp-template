@@ -22,13 +22,13 @@ async def test_sum(
 
 
 @rpc.method("test:fail")
-async def test_fail(smartapp: SmartApp) -> RPCResultResponse[None]:
+async def test_fail(smartapp: SmartApp) -> RPCResultResponse[str]:
     smart_log("Test smart_log output")
     raise ValueError
 
 
 @rpc.method("test:redis")
-async def test_redis(smartapp: SmartApp) -> RPCResultResponse[None]:
+async def test_redis(smartapp: SmartApp) -> RPCResultResponse[str]:
     # This test just for coverage
     # Better to assert bot answers instead of using direct DB/Redis access
 
@@ -36,11 +36,11 @@ async def test_redis(smartapp: SmartApp) -> RPCResultResponse[None]:
 
     await redis_repo.set("test_key", "test_value")
 
-    return RPCResultResponse(None)
+    return RPCResultResponse("")
 
 
 @rpc.method("test:db", middlewares=[db_session_middleware])
-async def test_db(smartapp: SmartApp) -> RPCResultResponse[None]:
+async def test_db(smartapp: SmartApp) -> RPCResultResponse[str]:
     # This test just for coverage
     # Better to assert bot answers instead of using direct DB/Redis access
 
@@ -57,7 +57,7 @@ async def test_db(smartapp: SmartApp) -> RPCResultResponse[None]:
     await record_repo.create(record_data="test not unique data")
     await record_repo.create(record_data="test not unique data")
 
-    return RPCResultResponse(None)
+    return RPCResultResponse("")
 
 
 @rpc.method("debug:git-commit-sha")
