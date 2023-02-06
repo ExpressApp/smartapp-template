@@ -11,7 +11,7 @@ from app.api.routers import router
 from app.bot.bot import get_bot
 from app.caching.redis_repo import RedisRepo
 from app.constants import BOT_PROJECT_NAME
-from app.db.sqlalchemy import build_db_session_factory
+from app.db.sqlalchemy import build_db_session_factory, close_db_connections
 from app.services.static_files import StaticFilesCustomHeaders
 from app.settings import settings
 
@@ -34,6 +34,9 @@ async def shutdown(bot: Bot) -> None:
 
     # -- Redis --
     await bot.state.redis.close()
+
+    # -- Database --
+    await close_db_connections()
 
 
 def get_application(
