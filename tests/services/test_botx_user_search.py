@@ -21,7 +21,7 @@ async def test_search_user_on_each_cts_user_is_bot_error_raised(
         department=None,
         emails=[],
         other_id=None,
-        user_kind=UserKinds.CTS_USER,
+        user_kind=UserKinds.BOT,
     )
 
     bot.search_user_by_huid = AsyncMock(return_value=bot_user)  # type: ignore
