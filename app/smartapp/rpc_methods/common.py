@@ -1,5 +1,6 @@
 """Handlers for default smartapp rpc methods."""
 from os import environ
+from subprocess import PIPE, STDOUT, run
 
 from pybotx_smart_logger import smart_log
 from pybotx_smartapp_rpc import RPCArgsBaseModel, RPCResultResponse, RPCRouter, SmartApp
@@ -63,3 +64,11 @@ async def test_db(smartapp: SmartApp) -> RPCResultResponse[str]:
 @rpc.method("debug:git-commit-sha")
 async def test_redis_callback_repo(smartapp: SmartApp) -> RPCResultResponse[str]:
     return RPCResultResponse(environ.get("GIT_COMMIT_SHA", "<undefined>"))
+
+
+@rpc.method("debug:version")
+async def build_version(smartapp: SmartApp) -> RPCResultResponse[str]:
+    """Show app version."""
+    cmd = "poetry version --short"
+    output = run(cmd.split(), stdout=PIPE, stderr=STDOUT, text=True).stdout
+    return RPCResultResponse(output)
