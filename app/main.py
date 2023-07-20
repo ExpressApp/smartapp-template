@@ -1,7 +1,7 @@
 """Application with configuration for events, routers and middleware."""
 
 from functools import partial
-from typing import Optional
+from typing import Any, Dict, Optional
 
 from fastapi import FastAPI
 from pybotx import Bot, CallbackRepoProto
@@ -12,8 +12,10 @@ from app.bot.bot import get_bot
 from app.caching.redis_repo import RedisRepo
 from app.constants import BOT_PROJECT_NAME
 from app.db.sqlalchemy import build_db_session_factory, close_db_connections
+from app.services.openapi import custom_openapi
 from app.services.static_files import StaticFilesCustomHeaders
 from app.settings import settings
+from app.smartapp.smartapp import smartapp
 
 
 async def startup(bot: Bot) -> None:
@@ -47,7 +49,7 @@ def get_application(
 
     bot = get_bot(callback_repo)
 
-    application = FastAPI(title=BOT_PROJECT_NAME, openapi_url=None)
+    application = FastAPI()
     application.state.bot = bot
 
     application.add_event_handler("startup", partial(startup, bot))
@@ -67,5 +69,15 @@ def get_application(
         ),
         name="smartapp_files",
     )
+
+    def get_custom_openapi() -> Dict[str, Any]:  # noqa: WPS430
+        return custom_openapi(
+            title=BOT_PROJECT_NAME,
+            version="0.1.0",
+            fastapi_routes=application.routes,
+            rpc_router=smartapp.router,
+        )
+
+    application.openapi = get_custom_openapi  # type: ignore
 
     return application
