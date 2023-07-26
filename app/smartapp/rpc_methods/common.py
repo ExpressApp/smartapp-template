@@ -71,4 +71,4 @@ async def build_version(smartapp: SmartApp) -> RPCResultResponse[str]:
     """Show app version."""
     cmd = "poetry version --short"
     output = run(cmd.split(), stdout=PIPE, stderr=STDOUT, text=True).stdout
-    return RPCResultResponse(output)
+    return RPCResultResponse(output.strip("\n"))
