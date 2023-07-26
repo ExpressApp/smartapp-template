@@ -4,7 +4,7 @@ from fastapi import APIRouter
 from app.api.endpoints.botx import router as bot_router
 from app.api.endpoints.healthcheck import router as healthcheck_router
 
-router = APIRouter()
+router = APIRouter(include_in_schema=False)
 
 router.include_router(healthcheck_router)
 router.include_router(bot_router)
