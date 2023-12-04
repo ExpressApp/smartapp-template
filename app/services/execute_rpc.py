@@ -1,10 +1,11 @@
+"""RPC execution service."""
 import re
-from typing import Any, Tuple
+from typing import Any, Dict, Tuple
 from uuid import UUID, uuid4
 
 from fastapi import HTTPException
 from fastapi.security import APIKeyHeader
-from pybotx import (
+from pybotx import (  # noqa: WPS235
     Bot,
     BotAccount,
     Chat,
@@ -21,6 +22,15 @@ from starlette.requests import Request
 from starlette.status import HTTP_400_BAD_REQUEST, HTTP_403_FORBIDDEN
 
 from app.settings import settings
+
+DOCS = """Установка параметров для выполнение RPC методов.
+
+* `bot_id` - huid бота. Необязательное поле.
+* `sender_huid` - huid пользователя. Необязательное поле.
+* `sender_udid` - udid пользователя. Необязательное поле.
+* `chat_id` - id чата. Необязательное поле.
+
+**Example**: `bot_id=UUID&sender_huid=UUID&sender_udid=UUID&chat_id=UUID`"""
 
 
 class RPCAuthConfig(BaseModel):
@@ -62,7 +72,7 @@ async def expand_config(
 
 def event_factory(
     method_name: str,
-    payload: dict[str, Any],
+    payload: Dict[str, Any],
     bot_account: BotAccount,
     user_info: UserFromSearch,
     user_udid: UUID,
@@ -111,21 +121,18 @@ def event_factory(
 class RPCAuth(APIKeyHeader):
     PATTERN = "([^?=&]+)=([^&]*)"
 
-    def __init__(self, *args: Any, **kwargs: Any) -> None:
-        super().__init__(*args, **kwargs)
-
     async def __call__(self, request: Request) -> RPCAuthConfig:  # type: ignore
         api_key = request.headers.get(self.model.name)
         if not api_key:
             return RPCAuthConfig()
 
-        result = re.findall(self.PATTERN, api_key)
-        if not result:
+        params = re.findall(self.PATTERN, api_key)  # noqa: WPS110
+        if not params:
             raise HTTPException(
                 status_code=HTTP_403_FORBIDDEN, detail="Invalid RPC Auth format"
             )
         try:
-            config = RPCAuthConfig(**dict(result))
+            config = RPCAuthConfig(**dict(params))
         except ValidationError as ex:
             raise HTTPException(status_code=HTTP_403_FORBIDDEN, detail=str(ex))
 
@@ -135,8 +142,5 @@ class RPCAuth(APIKeyHeader):
 security = RPCAuth(
     scheme_name="RPC Auth",
     name="X-RPC-AUTH",
-    description="""
-    
-    Format: `bot_id=282bd294-c60a-5343-91a0-12dd0d23c03c&sender_huid=282bd294-c60a-5343-91a0-12dd0d23c03c&sender_udid=282bd294-c60a-5343-91a0-12dd0d23c03c&chat_id=282bd294-c60a-5343-91a0-12dd0d23c03c`
-    """,
+    description=DOCS,
 )

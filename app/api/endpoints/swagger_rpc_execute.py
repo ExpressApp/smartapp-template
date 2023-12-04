@@ -1,12 +1,12 @@
+"""Execute RPC method endpoint."""
 from json import JSONDecodeError
-from typing import Annotated
 
 from fastapi import APIRouter, Depends, Request
 from fastapi.responses import JSONResponse
 from pybotx import Bot
-from starlette.status import HTTP_200_OK, HTTP_400_BAD_REQUEST
 from pybotx_smartapp_rpc import RPCErrorResponse, SmartApp
 from pybotx_smartapp_rpc.models.request import RPCRequest
+from starlette.status import HTTP_200_OK, HTTP_400_BAD_REQUEST
 
 from app.api.dependencies.bot import bot_dependency
 from app.services.execute_rpc import (
@@ -24,7 +24,7 @@ router = APIRouter(include_in_schema=False)
 async def rpc_execute(
     method: str,
     request: Request,
-    credentials: Annotated[RPCAuthConfig, Depends(security)],
+    credentials: RPCAuthConfig = Depends(security),
     bot: Bot = bot_dependency,
 ) -> JSONResponse:
     """Execute RPC method."""
@@ -47,10 +47,14 @@ async def rpc_execute(
     smartapp = SmartApp(bot, event.bot.id, event.chat.id, event)
     rpc_request = RPCRequest(method=method, type="smartapp_rpc", params=method_payload)
 
-    rpc_response = await smartapp_rpc._router.perform_rpc_request(smartapp, rpc_request)
+    rpc_response = await smartapp_rpc._router.perform_rpc_request(  # noqa: WPS437
+        smartapp, rpc_request
+    )
     if isinstance(rpc_response, RPCErrorResponse):
-        error = rpc_response.errors[0]
-        return JSONResponse(status_code=HTTP_400_BAD_REQUEST, content=error.dict())
+        return JSONResponse(
+            status_code=HTTP_400_BAD_REQUEST,
+            content=rpc_response.jsonable_dict()["errors"],
+        )
 
     return JSONResponse(
         status_code=HTTP_200_OK, content=rpc_response.jsonable_dict().get("result")
