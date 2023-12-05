@@ -153,6 +153,7 @@ def incoming_message_factory(
             metadata={},
             sender=UserSender(
                 huid=user_huid,
+                udid=uuid4(),
                 ad_login=ad_login,
                 ad_domain=ad_domain,
                 username=None,
@@ -233,6 +234,7 @@ def smartapp_event_factory(
             files=files or [],
             sender=UserSender(
                 huid=user_huid,
+                udid=uuid4(),
                 ad_login=None,
                 ad_domain=None,
                 username=None,
@@ -269,7 +271,7 @@ def perform_rpc_request(
     async def performer(
         *,
         method: str,
-        args: RPCArgsBaseModel = None,
+        args: Optional[RPCArgsBaseModel] = None,
         files: Optional[List[File]] = None,
     ) -> RPCResponse:
         if not args:

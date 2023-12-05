@@ -8,13 +8,13 @@ authors = []
 
 
 [tool.poetry.dependencies]
-python = ">=3.8,<3.11"
+python = ">=3.8,<3.12"
 
-pybotx = ">=0.54.0,<0.58.0"
-pybotx-smartapp-rpc = ">=0.6.0,<0.8.0"
+pybotx = ">=0.60.0,<0.65.0"
+pybotx-smartapp-rpc = ">=0.7.3,<0.8.0"
 pybotx-smart-logger = ">=0.9.0,<0.11.0"
 
-fastapi = "~0.74.1"
+fastapi = "^0.104.1"
 uvicorn = { version = "~0.17.5", extras = ["standart"] }
 
 loguru = ">=0.6.0,<0.7.0"
@@ -23,19 +23,19 @@ pydantic = { version = "~1.10.8", extras = ["dotenv"] }
 
 alembic = "~1.7.6"
 SQLAlchemy = "~2.0.0"
-asyncpg = "~0.25.0"  # DB backend for application
+asyncpg = "^0.29.0"  # DB backend for application
 psycopg2-binary = "~2.9.2"  # DB backend for alembic (migration tool)
 importlib-resources = { version = "^5.4.0", python = "<3.9" }
 zipp = { version = "^3.7.0", python = "<3.9" }
 importlib-metadata = { version = "^4.11.0", python = "<3.9" }
 redis = "^4.3.1"
 
-[tool.poetry.dev-dependencies]
+[tool.poetry.group.dev.dependencies]
 add-trailing-comma = "2.2.1"
 autoflake = "1.4.0"
 black = "22.3.0"
 isort = "5.10.1"
-mypy = "0.931.0"
+mypy = "~1.0.0"
 wemake-python-styleguide = "0.16.0"
 
 flake8-bandit = "2.1.2"  # https://github.com/PyCQA/bandit/issues/837
@@ -47,10 +47,10 @@ pytest-cov = "~3.0.0"
 
 asgi-lifespan = "~1.0.1"
 requests = "~2.27.1"
-respx = "~0.19.2"
+respx = "~0.20.2"
 
 markdown = "3.3.6"  # https://github.com/python-poetry/poetry/issues/4777
 
 [build-system]
-requires = ["poetry>=1.1.12"]
+requires = ["poetry>=1.7.1"]
 build-backend = "poetry.masonry.api"

@@ -76,6 +76,7 @@ def get_application(
             version="0.1.0",
             fastapi_routes=application.routes,
             rpc_router=smartapp.router,
+            openapi_version="3.0.2",
         )
 
     application.openapi = get_custom_openapi  # type: ignore
