@@ -75,7 +75,8 @@ async def test_callback_redis_repo_successful_callback(
                 "status": "ok",
                 "sync_id": "21a9ec9e-f21f-4406-ac44-1a78d2ccf9e3",
                 "result": {},
-            }
+            },
+            verify_request=False,
         )
         await asyncio.sleep(0)
 
@@ -121,7 +122,8 @@ async def test_callback_redis_repo_unsuccessful_callback(
                 "reason": "test_reason",
                 "errors": [],
                 "error_data": {},
-            }
+            },
+            verify_request=False,
         )
         with pytest.raises(BotXMethodFailedCallbackReceivedError) as exc:
             await task
@@ -201,7 +203,8 @@ async def test_callback_redis_repo_wait_callback(
                 "reason": "test_reason",
                 "errors": [],
                 "error_data": {},
-            }
+            },
+            verify_request=False,
         )
         await asyncio.sleep(0.1)
 
