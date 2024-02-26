@@ -14,6 +14,7 @@ from app.main import get_application
 def test__web_app__bot_status_response_ok(
     bot_id: UUID,
     bot: Bot,
+    authorization_header: Dict[str, str],
 ) -> None:
     # - Arrange -
     query_params = {
@@ -27,6 +28,7 @@ def test__web_app__bot_status_response_ok(
         response = test_client.get(
             "/status",
             params=query_params,
+            headers=authorization_header,
         )
 
     # - Assert -
@@ -45,6 +47,7 @@ def test__web_app__bot_status_response_ok(
 def test__web_app__bot_status_unknown_bot_response_service_unavailable(
     bot_id: UUID,
     bot: Bot,
+    authorization_header: Dict[str, str],
 ) -> None:
     # - Arrange -
     query_params = {
@@ -58,6 +61,7 @@ def test__web_app__bot_status_unknown_bot_response_service_unavailable(
         response = test_client.get(
             "/status",
             params=query_params,
+            headers=authorization_header,
         )
 
     # - Assert -
@@ -71,6 +75,7 @@ def test__web_app__bot_status_unknown_bot_response_service_unavailable(
 def test__web_app__bot_status_without_parameters_response_bad_request(
     bot_id: UUID,
     bot: Bot,
+    authorization_header: Dict[str, str],
 ) -> None:
     # - Arrange -
     query_params: Dict[str, str] = {}
@@ -80,6 +85,7 @@ def test__web_app__bot_status_without_parameters_response_bad_request(
         response = test_client.get(
             "/status",
             params=query_params,
+            headers=authorization_header,
         )
 
     # - Assert -
@@ -94,6 +100,7 @@ def test__web_app__bot_command_response_accepted(
     bot_id: UUID,
     host: str,
     bot: Bot,
+    authorization_header: Dict[str, str],
 ) -> None:
     # - Arrange -
     smartapp_event_endpoint = respx.post(
@@ -165,6 +172,7 @@ def test__web_app__bot_command_response_accepted(
         command_response = test_client.post(
             "/command",
             json=command_payload,
+            headers=authorization_header,
         )
 
     # - Assert -
@@ -204,6 +212,7 @@ def test__web_app__bot_command_response_service_unavailable(
 @respx.mock
 def test__web_app__unknown_bot_response_service_unavailable(
     bot: Bot,
+    authorization_header: Dict[str, str],
 ) -> None:
     # - Arrange -
     payload = {
@@ -250,6 +259,7 @@ def test__web_app__unknown_bot_response_service_unavailable(
         response = test_client.post(
             "/command",
             json=payload,
+            headers=authorization_header,
         )
 
     # - Assert -
@@ -264,6 +274,7 @@ def test__web_app__unknown_bot_response_service_unavailable(
 @respx.mock
 def test__web_app__unsupported_bot_api_version_service_unavailable(
     bot: Bot,
+    authorization_header: Dict[str, str],
 ) -> None:
     # - Arrange -
     payload = {
@@ -309,6 +320,7 @@ def test__web_app__unsupported_bot_api_version_service_unavailable(
         response = test_client.post(
             "/command",
             json=payload,
+            headers=authorization_header,
         )
 
     # - Assert -
