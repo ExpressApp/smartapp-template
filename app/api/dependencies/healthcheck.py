@@ -4,6 +4,7 @@ from typing import Optional
 
 from fastapi import Depends, Request
 from pybotx import Bot
+from sqlalchemy.sql import text
 
 
 async def check_db_connection(request: Request) -> Optional[str]:
@@ -14,7 +15,7 @@ async def check_db_connection(request: Request) -> Optional[str]:
 
     async with session_factory() as db_session:
         try:
-            await db_session.execute("SELECT 1")
+            await db_session.execute(text("SELECT 1"))
         except Exception as exc:
             return str(exc)
 
