@@ -49,7 +49,10 @@ def get_application(
 
     bot = get_bot(callback_repo)
 
-    application = FastAPI()
+    application = FastAPI(
+        openapi_url="/openapi.json" if settings.DEBUG else None,
+    )
+
     application.state.bot = bot
 
     application.add_event_handler("startup", partial(startup, bot))
