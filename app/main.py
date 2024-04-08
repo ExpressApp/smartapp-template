@@ -35,7 +35,7 @@ async def shutdown(bot: Bot) -> None:
     await bot.shutdown()
 
     # -- Redis --
-    await bot.state.redis.close()
+    await bot.state.redis.aclose()
 
     # -- Database --
     await close_db_connections()

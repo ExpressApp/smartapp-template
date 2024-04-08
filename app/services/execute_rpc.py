@@ -8,6 +8,7 @@ from fastapi.security import APIKeyHeader
 from pybotx import (  # noqa: WPS235
     Bot,
     BotAccount,
+    BotAccountWithSecret,
     Chat,
     ChatTypes,
     SmartAppEvent,
@@ -42,7 +43,7 @@ class RPCAuthConfig(BaseModel):
 
 async def expand_config(
     config: RPCAuthConfig, bot: Bot
-) -> Tuple[BotAccount, UserFromSearch]:
+) -> Tuple[BotAccountWithSecret, UserFromSearch]:
     bot_account = [bot for bot in bot.bot_accounts if bot.id == config.bot_id]
     if not bot_account:
         raise HTTPException(
@@ -73,7 +74,7 @@ async def expand_config(
 def event_factory(
     method_name: str,
     payload: Dict[str, Any],
-    bot_account: BotAccount,
+    bot_account: BotAccountWithSecret,
     user_info: UserFromSearch,
     user_udid: UUID,
     chat_id: UUID,
