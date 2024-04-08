@@ -1,6 +1,7 @@
 # YAML objects named with dot is anchors, which are not recognized as jobs
 .run_bot: &run_bot
   - docker rm -f ${CONTAINER_NAME} || true
+  {% if add_worker -%}- docker rm -f ${CONTAINER_NAME}-worker || true{%- endif %}
   - docker pull ${CONTAINER_RELEASE_IMAGE}
   # Add new envs here. Don't forget to add them in example.env and docker-compose files.
   - docker run
@@ -17,6 +18,21 @@
     -e BOT_CREDENTIALS="${BOT_CREDENTIALS}"
     -e DEBUG="${DEBUG:-false}"
     $CONTAINER_RELEASE_IMAGE
+  {% if add_worker -%}
+  # Add envs for worker here
+  - docker run
+    -d
+    --name ${CONTAINER_NAME}-worker
+    --restart always
+    --log-opt max-size=10m
+    --log-opt max-file=5
+    -e POSTGRES_DSN="${POSTGRES_DSN}"
+    -e REDIS_DSN="${REDIS_DSN}"
+    -e BOT_CREDENTIALS="${BOT_CREDENTIALS}"
+    -e DEBUG="${DEBUG:-false}"
+    ${CONTAINER_RELEASE_IMAGE}
+    bash -c 'PYTHONPATH="$PYTHONPATH:$PWD" saq app.worker.worker.settings'
+  {%- endif %}
 
 .create_db: &create_db
   - psql -c "create user \"${POSTGRES_USER}\"" postgres || true
@@ -147,6 +163,9 @@ deploy.botstest.stop:
   extends: deploy.botstest
   script:
     - docker rm -f ${CONTAINER_NAME} || true
+    {% if add_worker -%}
+    - docker rm -f ${CONTAINER_NAME} ${CONTAINER_NAME}-worker || true
+    {%- endif %}
     - psql -c "select pg_terminate_backend(pid) from pg_stat_activity \
       where datname = '${POSTGRES_DB}';" postgres || true
     - psql -c "drop database \"${POSTGRES_DB}\"" postgres || true
