@@ -2,9 +2,9 @@
 
 set -ex
 
-PROJECT_NAME=async-box-bot
+PROJECT_NAME=smartapp-template
 
-python -m copier --defaults . async-box-bot
+python -m copier --defaults . smartapp-template
 docker build -t $PROJECT_NAME $PROJECT_NAME
 
 # there should be added `--fail` option to curl command when healthcheck endpoint is added
@@ -15,7 +15,7 @@ docker run \
     -e APP_ENV=dev \
     -e REDIS_DSN=$REDIS_DSN \
     -e POSTGRES_DSN=$POSTGRES_DSN \
-    -e BOT_CREDENTIALS="cts.example.com@secret@aab1b617-7694-4e75-bc59-145a2fd1502f"  \
+    -e BOT_CREDENTIALS="https://cts.example.com@secret@aab1b617-7694-4e75-bc59-145a2fd1502f"  \
     --health-cmd "curl http://localhost:8000/status || exit 1" \
     --health-interval 2s \
     --health-start-period 4s \
