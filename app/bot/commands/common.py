@@ -5,7 +5,7 @@ from pybotx import (
     HandlerCollector,
     IncomingMessage,
     SmartAppEvent,
-    SyncSmartAppRequestResponsePayload,
+    SyncSmartAppEventResponsePayload,
 )
 
 from app.smartapp.smartapp import smartapp
@@ -18,11 +18,11 @@ async def handle_smartapp_event(event: SmartAppEvent, bot: Bot) -> None:
     await smartapp.handle_smartapp_event(event, bot)
 
 
-@collector.sync_smartapp_request
-async def handle_sync_smartapp_request(
+@collector.sync_smartapp_event
+async def handle_sync_smartapp_event(
     event: SmartAppEvent, bot: Bot
-) -> SyncSmartAppRequestResponsePayload:
-    return await smartapp.handle_sync_smartapp_request(event, bot)
+) -> SyncSmartAppEventResponsePayload:
+    return await smartapp.handle_sync_smartapp_event(event, bot)
 
 
 @collector.command("/_test-redis-callback-repo", visible=False)

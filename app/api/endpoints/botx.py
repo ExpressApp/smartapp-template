@@ -36,10 +36,10 @@ async def command_handler(request: Request, bot: Bot = bot_dependency) -> JSONRe
 
 @router.post("/smartapps/request")
 @handle_exceptions
-async def sync_smartapp_request_handler(
+async def sync_smartapp_event_handler(
     request: Request, bot: Bot = bot_dependency
 ) -> JSONResponse:
-    response = await bot.sync_execute_raw_smartapp_request(
+    response = await bot.sync_execute_raw_smartapp_event(
         await request.json(),
         request_headers=request.headers,
     )
