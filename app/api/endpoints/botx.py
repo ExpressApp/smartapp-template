@@ -34,7 +34,7 @@ async def command_handler(request: Request, bot: Bot = bot_dependency) -> JSONRe
     )
 
 
-@router.post("/smartapp/request")
+@router.post("/smartapps/request")
 @handle_exceptions
 async def sync_smartapp_request_handler(
     request: Request, bot: Bot = bot_dependency
