@@ -1581,14 +1581,14 @@ files = [
 
 [[package]]
 name = "pybotx"
-version = "0.65.0"
+version = "0.67.1"
 description = "A python library for interacting with eXpress BotX API"
 category = "main"
 optional = false
 python-versions = "<3.13,>=3.8"
 files = [
-    {file = "pybotx-0.65.0-py3-none-any.whl", hash = "sha256:50ff8a20a7472a8639f80d8a84e1d845196427fcffc38945cdb60f3bf30be4ce"},
-    {file = "pybotx-0.65.0.tar.gz", hash = "sha256:ba5935641706e68049633d57c76bc9671ba3e6be258185a2df25c45c96e5e38b"},
+    {file = "pybotx-0.67.1-py3-none-any.whl", hash = "sha256:df8ed8663862faf0fe845a8a9176f8675990a54a18feaab297b48a74129108bd"},
+    {file = "pybotx-0.67.1.tar.gz", hash = "sha256:afa5a89c256be2511742ac7019a0c7df71d052a6a119a412020e9d5c99d039a9"},
 ]
 
 [package.dependencies]
@@ -1600,7 +1600,6 @@ loguru = ">=0.6.0,<0.7.0"
 mypy-extensions = ">=0.2.0,<0.5.0"
 pydantic = ">=1.6.0,<1.11.0"
 pyjwt = ">=2.0.0,<3.0.0"
-typing-extensions = ">=3.7.4,<5.0.0"
 
 [[package]]
 name = "pybotx-smart-logger"
@@ -1620,18 +1619,18 @@ pydantic = ">=1.10.5,<2.0.0"
 
 [[package]]
 name = "pybotx-smartapp-rpc"
-version = "0.8.0"
+version = "0.9.0"
 description = "eXpress SmartApp JSON-RPC library"
 category = "main"
 optional = false
 python-versions = "<3.12,>=3.8"
 files = [
-    {file = "pybotx_smartapp_rpc-0.8.0-py3-none-any.whl", hash = "sha256:f24e01a4e25531f09d21265407172c62b48dd72e37cff46ab2250dbefd2b84a1"},
-    {file = "pybotx_smartapp_rpc-0.8.0.tar.gz", hash = "sha256:e0f59042f8f3b0f54a4c68859d72162ad69ff5923a66ecc31bec204e40a298dc"},
+    {file = "pybotx_smartapp_rpc-0.9.0-py3-none-any.whl", hash = "sha256:da721e195481769af3f27871cd65557052874ce94acc1e017e1e9963ac95da82"},
+    {file = "pybotx_smartapp_rpc-0.9.0.tar.gz", hash = "sha256:0504898a57279f4cb3a2d5bf0905a40dabe2c09372e7a6450ec158c958fb4f62"},
 ]
 
 [package.dependencies]
-pybotx = ">=0.60.0"
+pybotx = ">=0.67.0"
 pydantic = ">=1.6.0,<1.11.0"
 
 [[package]]
@@ -1894,6 +1893,7 @@ files = [
     {file = "PyYAML-6.0.1-cp311-cp311-win_amd64.whl", hash = "sha256:bf07ee2fef7014951eeb99f56f39c9bb4af143d8aa3c21b1677805985307da34"},
     {file = "PyYAML-6.0.1-cp312-cp312-macosx_10_9_x86_64.whl", hash = "sha256:855fb52b0dc35af121542a76b9a84f8d1cd886ea97c84703eaa6d88e37a2ad28"},
     {file = "PyYAML-6.0.1-cp312-cp312-macosx_11_0_arm64.whl", hash = "sha256:40df9b996c2b73138957fe23a16a4f0ba614f4c0efce1e9406a184b6d07fa3a9"},
+    {file = "PyYAML-6.0.1-cp312-cp312-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:a08c6f0fe150303c1c6b71ebcd7213c2858041a7e01975da3a99aed1e7a378ef"},
     {file = "PyYAML-6.0.1-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:6c22bec3fbe2524cde73d7ada88f6566758a8f7227bfbf93a408a9d86bcc12a0"},
     {file = "PyYAML-6.0.1-cp312-cp312-musllinux_1_1_x86_64.whl", hash = "sha256:8d4e9c88387b0f5c7d5f281e55304de64cf7f9c0021a3525bd3b1c542da3b0e4"},
     {file = "PyYAML-6.0.1-cp312-cp312-win32.whl", hash = "sha256:d483d2cdf104e7c9fa60c544d92981f12ad66a457afae824d146093b8c294c54"},
@@ -2351,4 +2351,4 @@ testing = ["func-timeout", "jaraco.itertools", "pytest (>=6)", "pytest-black (>=
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.8,<3.12"
-content-hash = "e73e970a9838727ecaccd20119a35a3a74ca9505948dfaeb45c926b9cbd0fe75"
+content-hash = "00f8b4c2c1c457320cb1107174526f21bc09baf3c5015638cc9cb25872010f67"

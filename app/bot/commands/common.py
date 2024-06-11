@@ -1,7 +1,12 @@
 """Handlers for default bot commands and system events."""
 
-
-from pybotx import Bot, HandlerCollector, IncomingMessage, SmartAppEvent
+from pybotx import (
+    Bot,
+    HandlerCollector,
+    IncomingMessage,
+    SmartAppEvent,
+    SyncSmartAppEventResponsePayload,
+)
 
 from app.smartapp.smartapp import smartapp
 
@@ -11,6 +16,13 @@ collector = HandlerCollector()
 @collector.smartapp_event
 async def handle_smartapp_event(event: SmartAppEvent, bot: Bot) -> None:
     await smartapp.handle_smartapp_event(event, bot)
+
+
+@collector.sync_smartapp_event
+async def handle_sync_smartapp_event(
+    event: SmartAppEvent, bot: Bot
+) -> SyncSmartAppEventResponsePayload:
+    return await smartapp.handle_sync_smartapp_event(event, bot)
 
 
 @collector.command("/_test-redis-callback-repo", visible=False)

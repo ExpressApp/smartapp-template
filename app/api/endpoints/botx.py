@@ -8,73 +8,42 @@ from pybotx import (
     Bot,
     BotXMethodCallbackNotFoundError,
     UnknownBotAccountError,
-    UnsupportedBotAPIVersionError,
     UnverifiedRequestError,
     build_bot_disabled_response,
     build_command_accepted_response,
     build_unverified_request_response,
 )
-from pybotx.constants import BOT_API_VERSION
 
 from app.api.dependencies.bot import bot_dependency
+from app.api.exceptions.botx import handle_exceptions
 from app.logger import logger
-from app.settings import settings
 
 router = APIRouter()
 
 
 @router.post("/command")
+@handle_exceptions
 async def command_handler(request: Request, bot: Bot = bot_dependency) -> JSONResponse:
     """Receive commands from users. Max timeout - 5 seconds."""
-
-    try:  # noqa: WPS225
-        bot.async_execute_raw_bot_command(
-            await request.json(),
-            request_headers=request.headers,
-        )
-    except ValueError:
-        error_label = "Bot command validation error"
-
-        if settings.DEBUG:
-            logger.exception(error_label)
-        else:
-            logger.warning(error_label)
-
-        return JSONResponse(
-            build_bot_disabled_response(error_label),
-            status_code=HTTPStatus.SERVICE_UNAVAILABLE,
-        )
-    except UnknownBotAccountError as exc:
-        error_label = f"No credentials for bot {exc.bot_id}"
-        logger.warning(error_label)
-
-        return JSONResponse(
-            build_bot_disabled_response(error_label),
-            status_code=HTTPStatus.SERVICE_UNAVAILABLE,
-        )
-    except UnsupportedBotAPIVersionError as exc:
-        error_label = (
-            f"Unsupported Bot API version: `{exc.version}`. "
-            f"Set protocol version to `{BOT_API_VERSION}` in Admin panel."
-        )
-        logger.warning(error_label)
-
-        return JSONResponse(
-            build_bot_disabled_response(error_label),
-            status_code=HTTPStatus.SERVICE_UNAVAILABLE,
-        )
-    except UnverifiedRequestError as exc:
-        logger.warning(f"UnverifiedRequestError: {exc.args[0]}")
-        return JSONResponse(
-            content=build_unverified_request_response(
-                status_message=exc.args[0],
-            ),
-            status_code=HTTPStatus.UNAUTHORIZED,
-        )
-
+    bot.async_execute_raw_bot_command(
+        await request.json(),
+        request_headers=request.headers,
+    )
     return JSONResponse(
         build_command_accepted_response(), status_code=HTTPStatus.ACCEPTED
     )
+
+
+@router.post("/smartapps/request")
+@handle_exceptions
+async def sync_smartapp_event_handler(
+    request: Request, bot: Bot = bot_dependency
+) -> JSONResponse:
+    response = await bot.sync_execute_raw_smartapp_event(
+        await request.json(),
+        request_headers=request.headers,
+    )
+    return JSONResponse(response.jsonable_dict(), status_code=HTTPStatus.OK)
 
 
 @router.get("/status")
