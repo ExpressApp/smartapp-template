@@ -39,3 +39,4 @@ _exclude:
     - ".git"
     - "copier.yml"
     - "async-box.md"
+    - ".github"

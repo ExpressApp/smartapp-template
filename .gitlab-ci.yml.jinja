@@ -8,9 +8,9 @@
     -d
     --name ${CONTAINER_NAME}
     --restart always
-    --label traefik.http.routers.${BOT_PROJECT_NAME}.rule="Host(\`${BOT_URL}\`)"
+    --label traefik.http.routers.${CONTAINER_NAME}.rule="Host(\`${BOT_URL}\`)"
     --label traefik.enable=true
-    --label traefik.http.services.${BOT_PROJECT_NAME}.loadbalancer.server.port="8000"
+    --label traefik.http.services.${CONTAINER_NAME}.loadbalancer.server.port="8000"
     --log-opt max-size=10m
     --log-opt max-file=5
     -e POSTGRES_DSN="${POSTGRES_DSN}"
@@ -61,6 +61,93 @@
   - POSTGRES_HOST=${PROD_POSTGRES_HOST}
   - POSTGRES_DSN=postgres://$POSTGRES_USER:$POSTGRES_PASSWORD@$POSTGRES_HOST/$POSTGRES_DB
 
+.download_smartapp_files: &download_smartapp_files
+    - if [ -z ${SMARTAPP_TAG+x} ];
+      then
+      echo "SMARTAPP_TAG is unset, trying to get latest from api" &&
+      SMARTAPP_TAG=`python3 get_latest_frontend_tag.py ${SMARTAPP_GITLAB_ID} ${SMARTAPP_API_READ_TOKEN} ${BACKEND_VERSION}`;
+      fi
+    - echo "Deploing with smartapp tag ${SMARTAPP_TAG}"
+    - 'wget --header="PRIVATE-TOKEN: $SMARTAPP_API_READ_TOKEN" https://gitlab.ccsteam.ru/api/v4/projects/${SMARTAPP_GITLAB_ID}/packages/generic/${SMARTAPP_PACKAGE_NAME}/${SMARTAPP_TAG}/build.tgz'
+    - tar zxvf build.tgz && mkdir -p app/smartapp_files/static/ && mv build/* app/smartapp_files/static/
+    - ls app/smartapp_files/
+
+
+.botstest_before_script: &botstest_before_script
+  - echo "${BOT_PROJECT_NAME}"
+  - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+  - if [ -z ${BOT_PROJECT_NAME:-} ]; then BOT_PROJECT_NAME=${CI_PROJECT_PATH_SLUG#"$CI_PROJECT_NAMESPACE-"}; fi
+  - CONTAINER_NAME="${BOT_PROJECT_NAME}${CONTAINER_PREFIX}"
+  - CONTAINER_RELEASE_IMAGE="$CI_REGISTRY_IMAGE:${CI_COMMIT_TAG:-$CI_COMMIT_REF_SLUG}"
+  - BOT_CREDENTIALS=${DEV_BOT_CREDENTIALS}
+  - BOT_URL="${CONTAINER_NAME}.${DEV_SERVER_HOST}"
+  - REDIS_DSN=redis://${DOCKER_NETWORK_IP}/1
+  - *postgres_envs
+
+.deploy.botstest:
+  image: registry.ccsteam.ru/cicd-images/docker:latest
+  tags:
+    - bots-test
+  only:
+    - branches
+    - tags
+  when: manual
+  variables:
+    # https://docs.gitlab.com/ee/ci/runners/configure_runners.html#git-strategy
+    GIT_STRATEGY: none
+  before_script: *botstest_before_script
+  script:
+    - echo "Use URL 'https://${BOT_URL}/' in your cts admin site"
+    - echo "Using credentials ${BOT_CREDENTIALS}"
+    - echo "Deploying Docker container ${CONTAINER_NAME}"
+    - *create_db
+    - *run_bot
+
+.deploy.botstest.stop:
+  when: manual
+  environment:
+    action: stop
+  extends: .deploy.botstest
+  script:
+    {% if add_worker -%}
+    - docker rm -f ${CONTAINER_NAME} ${CONTAINER_NAME}-worker || true
+    {%- endif %}
+    - docker rm -f ${CONTAINER_NAME} || true
+    - psq- psql -c "SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname = '${POSTGRES_DB}';" postgres || true
+    - psql -c "drop database \"${POSTGRES_DB}\"" postgres || true
+    - psql -c "drop user \"${POSTGRES_USER}\"" postgres || true
+
+.publish_eXpress_public_registry_before_script: &publish_eXpress_public_registry_before_script
+  - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+  - docker login -u $PUBLIC_REGISTRY_USER -p $PUBLIC_REGISTRY_PASSWORD $PUBLIC_REGISTRY
+  - docker pull $CONTAINER_RELEASE_IMAGE
+  - docker tag $CONTAINER_RELEASE_IMAGE $CONTAINER_PUBLIC_RELEASE_IMAGE
+
+.publish_eXpress_public_registry_script: &publish_eXpress_public_registry_script
+  - docker push $CONTAINER_PUBLIC_RELEASE_IMAGE
+
+.publish_eXpress_public_registry_after_script: &publish_eXpress_public_registry_after_script
+  - docker rmi $CONTAINER_RELEASE_IMAGE || true
+  - docker rmi $CONTAINER_PUBLIC_RELEASE_IMAGE || true
+
+.eXpress_public_registry:
+  stage: publish
+  image: registry.ccsteam.ru/cicd-images/docker:latest
+  tags:
+    - docker
+  only:
+    - tags
+  when: manual
+  environment:
+    name: publish
+  variables:
+    # https://docs.gitlab.com/ee/ci/runners/configure_runners.html#git-strategy
+    GIT_STRATEGY: none
+    CONTAINER_RELEASE_IMAGE: "$CI_REGISTRY_IMAGE:$CI_COMMIT_TAG"
+    PROJECT_PUBLIC_REGISTRY_PATH: "$PUBLIC_REGISTRY/$PUBLIC_REGISTRY_CATALOG/$CI_PROJECT_NAME"
+    CONTAINER_PUBLIC_RELEASE_IMAGE: "$PROJECT_PUBLIC_REGISTRY_PATH:$CI_COMMIT_TAG"
+    CONTAINER_PUBLIC_LATEST_RELEASE_IMAGE: "$PROJECT_PUBLIC_REGISTRY_PATH:latest"
+
 # Jobs
 variables:
   GIT_DEPTH: 1  # Fetch only latest commit
@@ -70,13 +157,15 @@ stages:
   - check
   - build
   - security
+  - deploy-test
   - deploy
+  - publish
 
 default:
   interruptible: true
 
 lint:
-  image: python:3.10
+  image: python:3.11
   stage: check
   tags:
     - docker
@@ -87,13 +176,18 @@ lint:
     - poetry run ./scripts/lint
 
 test:
-  image: python:3.10
+  image: python:3.11
   stage: check
   tags:
     - docker
   services:
-    - postgres:15.3-alpine
-    - redis:7.0-alpine
+    - name: postgres:15.3-alpine
+      alias: postgres
+      variables:
+        POSTGRES_USER: postgres
+        POSTGRES_PASSWORD: postgres
+    - name: redis:7.0-alpine
+      alias: redis
   cache: *cache_dependencies
   variables:
     BOT_CREDENTIALS: cts.example.com@secret@123e4567-e89b-12d3-a456-426655440000
@@ -103,7 +197,7 @@ test:
     - *install_dependencies
   script:
     - poetry run pytest --cov-config=setup.cfg
-  coverage: '/Total coverage: \d\d\d.\d\d%/'
+  coverage: '/(?i)total.*? (100(?:\.0+)?\%|[1-9]?\d(?:\.\d+)?\%)/'
 
 security:
   stage: security
@@ -113,7 +207,7 @@ security:
       - project: devsecops/pipelines
         file: integration_templates/python.yml
 
-  
+
 build:
   image: docker:latest
   stage: build
@@ -125,67 +219,48 @@ build:
     - CONTAINER_RELEASE_IMAGE="$CI_REGISTRY_IMAGE:${CI_COMMIT_TAG:-$CI_COMMIT_REF_SLUG}"
   script:
     - docker pull $CONTAINER_RELEASE_IMAGE || true
+    - apk add python3
+    - apk add jq
+    - apk add grep
+    - python3 --version
+    - BACKEND_VERSION=$(grep -m 1 version pyproject.toml | tr -s ' ' | tr -d '"' | tr -d "'" | cut -d' ' -f3)
+    - *download_smartapp_files
     - docker build
       --cache-from $CONTAINER_RELEASE_IMAGE
       --build-arg GIT_HOST=$GIT_HOST
       --build-arg CI_JOB_TOKEN=$CI_JOB_TOKEN
       --build-arg CI_COMMIT_SHA=$CI_COMMIT_SHA
+      --label BackendVersion="${BACKEND_VERSION}"
+      --label SmartappVersion="${SMARTAPP_TAG}"
       --force-rm
       -t $CONTAINER_RELEASE_IMAGE .
     - docker push $CONTAINER_RELEASE_IMAGE
     - docker rmi $CONTAINER_RELEASE_IMAGE
 
-deploy.botstest:
-  image: docker:latest
-  stage: deploy
-  tags:
-    - bots-test
-  only:
-    - branches
-  when: manual
+deploy.botstest.S1:
+  stage: deploy-test
+  extends:
+    - .deploy.botstest
   environment:
-    name: test
-    on_stop: deploy.botstest.stop
+    name: S1
+    on_stop: deploy.botstest.S1.stop
   variables:
-    # https://docs.gitlab.com/ee/ci/runners/configure_runners.html#git-strategy
-    GIT_STRATEGY: none
-  before_script:
-    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
-    - if [ -z ${BOT_PROJECT_NAME:-} ]; then BOT_PROJECT_NAME=${CI_PROJECT_PATH_SLUG#"$CI_PROJECT_NAMESPACE-"}; fi
-    - CONTAINER_NAME=$BOT_PROJECT_NAME
-    - CONTAINER_RELEASE_IMAGE="$CI_REGISTRY_IMAGE:${CI_COMMIT_TAG:-$CI_COMMIT_REF_SLUG}"
-    - BOT_URL="${BOT_PROJECT_NAME}.${DEV_SERVER_HOST}"
-    - BOT_CREDENTIALS=$DEV_BOT_CREDENTIALS
-    - *postgres_envs
-    - REDIS_DSN=redis://${DOCKER_NETWORK_IP}/1
-  script:
-    - echo "Use URL 'https://${BOT_URL}/' in your cts admin site"
-    - echo "Using credentials ${BOT_CREDENTIALS}"
-    - echo "Deploing Docker container ${CONTAINER_NAME}"
-    - *create_db
-    - *run_bot
+    CONTAINER_PREFIX: -s1
 
-deploy.botstest.stop:
-  when: manual
+deploy.botstest.S1.stop:
+  stage: deploy-test
+  extends:
+    - .deploy.botstest.stop
   environment:
-    name: test
-    action: stop
-  extends: deploy.botstest
-  script:
-    - docker rm -f ${CONTAINER_NAME} || true
-    {% if add_worker -%}
-    - docker rm -f ${CONTAINER_NAME} ${CONTAINER_NAME}-worker || true
-    {%- endif %}
-    - psql -c "select pg_terminate_backend(pid) from pg_stat_activity \
-      where datname = '${POSTGRES_DB}';" postgres || true
-    - psql -c "drop database \"${POSTGRES_DB}\"" postgres || true
-    - psql -c "drop user \"${POSTGRES_USER}\"" postgres || true
+    name: S1
+  variables:
+    CONTAINER_PREFIX: -s1
 
 deploy.botsprod:
   stage: deploy
   image: docker:latest
   tags:
-    - bots-prod
+    - botsprod-yac
   only:
     # Note the bots-prod worker requires branch to be protected
     - master
@@ -211,3 +286,21 @@ deploy.botsprod:
     - *run_bot
   needs:
     - job: security
+
+eXpress_public_registry:
+  extends: .eXpress_public_registry
+  before_script: *publish_eXpress_public_registry_before_script
+  script: *publish_eXpress_public_registry_script
+  after_script: *publish_eXpress_public_registry_after_script
+
+eXpress_public_registry.as_latest:
+  extends: .eXpress_public_registry
+  before_script:
+    - *publish_eXpress_public_registry_before_script
+    - docker tag $CONTAINER_RELEASE_IMAGE $CONTAINER_PUBLIC_LATEST_RELEASE_IMAGE
+  script:
+    - *publish_eXpress_public_registry_script
+    - docker push $CONTAINER_PUBLIC_LATEST_RELEASE_IMAGE
+  after_script:
+    - *publish_eXpress_public_registry_after_script
+    - docker rmi $CONTAINER_PUBLIC_LATEST_RELEASE_IMAGE || true
