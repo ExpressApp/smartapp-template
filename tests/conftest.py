@@ -42,6 +42,7 @@ from pybotx_smartapp_rpc.models.request import RPCRequest
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.caching.redis_repo import RedisRepo
+from app.db.sqlalchemy import db_session_factory
 from app.main import get_application
 from app.settings import settings
 from app.smartapp.smartapp import smartapp as smartapp_rpc
@@ -71,7 +72,7 @@ def pytest_collection_modifyitems(items: List[pytest.Function]) -> None:
 
 @pytest.fixture
 async def db_session(bot: Bot) -> AsyncGenerator[AsyncSession, None]:
-    async with bot.state.db_session_factory() as session:
+    async with db_session_factory() as session:
         yield session
 
 

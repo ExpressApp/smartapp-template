@@ -11,8 +11,8 @@ from app.api.routers import router
 from app.bot.bot import get_bot
 from app.caching.redis_repo import RedisRepo
 from app.constants import BOT_PROJECT_NAME
-from app.db.sqlalchemy import build_db_session_factory, close_db_connections
-from app.services.openapi import custom_openapi
+from app.db.sqlalchemy import close_db_connections
+from app.services.openapi import custom_openapi, get_project_version
 from app.services.static_files import StaticFilesCustomHeaders
 from app.settings import settings
 from app.smartapp.smartapp import smartapp
@@ -21,9 +21,6 @@ from app.smartapp.smartapp import smartapp
 async def startup(bot: Bot) -> None:
     # -- Bot --
     await bot.startup()
-
-    # -- Database --
-    bot.state.db_session_factory = await build_db_session_factory()
 
     # -- Redis --
     bot.state.redis = aioredis.from_url(settings.REDIS_DSN)
@@ -76,7 +73,7 @@ def get_application(
     def get_custom_openapi() -> Dict[str, Any]:  # noqa: WPS430
         return custom_openapi(
             title=BOT_PROJECT_NAME,
-            version="0.1.0",
+            version=get_project_version(),
             fastapi_routes=application.routes,
             rpc_router=smartapp.router,
             openapi_version="3.0.2",
