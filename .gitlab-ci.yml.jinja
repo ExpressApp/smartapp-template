@@ -17,6 +17,7 @@
     -e REDIS_DSN="${REDIS_DSN}"
     -e BOT_CREDENTIALS="${BOT_CREDENTIALS}"
     -e DEBUG="${DEBUG:-false}"
+    -e CONTAINER_PREFIX="$CONTAINER_PREFIX"
     $CONTAINER_RELEASE_IMAGE
   {% if add_worker -%}
   # Add envs for worker here
@@ -30,8 +31,9 @@
     -e REDIS_DSN="${REDIS_DSN}"
     -e BOT_CREDENTIALS="${BOT_CREDENTIALS}"
     -e DEBUG="${DEBUG:-false}"
+    -e CONTAINER_PREFIX="$CONTAINER_PREFIX"
     ${CONTAINER_RELEASE_IMAGE}
-    bash -c 'PYTHONPATH="$PYTHONPATH:$PWD" saq app.worker.worker.settings'
+    sh -c 'PYTHONPATH="$PYTHONPATH:$PWD" saq app.worker.worker.settings'
   {%- endif %}
 
 .create_db: &create_db
@@ -238,24 +240,24 @@ build:
     - docker image inspect $CONTAINER_RELEASE_IMAGE | jq '.[0] .Config .Labels'
     - docker rmi $CONTAINER_RELEASE_IMAGE
 
-deploy.botstest.S1:
+deploy.botstest:
   stage: deploy-test
   extends:
     - .deploy.botstest
   environment:
     name: S1
-    on_stop: deploy.botstest.S1.stop
+    on_stop: deploy.botstest.stop
   variables:
-    CONTAINER_PREFIX: -s1
+    CONTAINER_PREFIX: ""
 
-deploy.botstest.S1.stop:
+deploy.botstest.stop:
   stage: deploy-test
   extends:
     - .deploy.botstest.stop
   environment:
     name: S1
   variables:
-    CONTAINER_PREFIX: -s1
+    CONTAINER_PREFIX: ""
 
 deploy.botsprod:
   stage: deploy
