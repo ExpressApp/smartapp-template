@@ -235,6 +235,7 @@ build:
       --force-rm
       -t $CONTAINER_RELEASE_IMAGE .
     - docker push $CONTAINER_RELEASE_IMAGE
+    - docker image inspect $CONTAINER_RELEASE_IMAGE | jq '.[0] .Config .Labels'
     - docker rmi $CONTAINER_RELEASE_IMAGE
 
 deploy.botstest.S1:

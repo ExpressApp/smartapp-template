@@ -24,7 +24,10 @@ async def startup(bot: Bot) -> None:
 
     # -- Redis --
     bot.state.redis = aioredis.from_url(settings.REDIS_DSN)
-    bot.state.redis_repo = RedisRepo(redis=bot.state.redis, prefix=BOT_PROJECT_NAME)
+    bot.state.redis_repo = RedisRepo(
+        redis=bot.state.redis, prefix=f"{BOT_PROJECT_NAME}{settings.CONTAINER_PREFIX}"
+    )
+
 
 
 async def shutdown(bot: Bot) -> None:
