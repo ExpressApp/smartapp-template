@@ -3,10 +3,11 @@
 from typing import Any, Dict, Literal
 
 from pybotx import Bot
-from redis import asyncio as aioredis
 from saq import Queue
 
+from app import constants
 from app.caching.callback_redis_repo import CallbackRedisRepo
+from app.caching.redis_client import create_redis_client
 from app.logger import logger
 
 # `saq` import its own settings and hides our module
@@ -18,7 +19,13 @@ SaqCtx = Dict[str, Any]
 async def startup(ctx: SaqCtx) -> None:
     from app.bot.bot import get_bot  # noqa: WPS433
 
-    callback_repo = CallbackRedisRepo(aioredis.from_url(app_settings.REDIS_DSN))
+    redis_client = create_redis_client(
+        max_connections=app_settings.REDIS_CONNECTION_POOL_SIZE
+    )
+    callback_repo = CallbackRedisRepo(
+        redis=redis_client,
+        prefix=f"{constants.BOT_PROJECT_NAME}{app_settings.CONTAINER_PREFIX}",
+    )
     bot = get_bot(callback_repo)
 
     await bot.startup(fetch_tokens=False)
@@ -39,7 +46,12 @@ async def healthcheck(_: SaqCtx) -> Literal[True]:
     return True
 
 
-queue = Queue(aioredis.from_url(app_settings.REDIS_DSN), name="{{bot_project_name}}")
+redis_client = create_redis_client(
+    max_connections=app_settings.REDIS_CONNECTION_POOL_SIZE
+)
+queue = Queue(
+    redis_client, name=f"{constants.BOT_PROJECT_NAME}{app_settings.CONTAINER_PREFIX}"
+)
 
 settings = {
     "queue": queue,

@@ -9,6 +9,7 @@ from redis import asyncio as aioredis
 
 from app.api.routers import router
 from app.bot.bot import get_bot
+from app.caching.redis_client import create_redis_client
 from app.caching.redis_repo import RedisRepo
 from app.constants import BOT_PROJECT_NAME
 from app.db.sqlalchemy import close_db_connections
@@ -23,9 +24,11 @@ async def startup(bot: Bot) -> None:
     await bot.startup()
 
     # -- Redis --
-    bot.state.redis = aioredis.from_url(settings.REDIS_DSN)
+    redis_client = create_redis_client(
+        max_connections=settings.REDIS_CONNECTION_POOL_SIZE
+    )
     bot.state.redis_repo = RedisRepo(
-        redis=bot.state.redis, prefix=f"{BOT_PROJECT_NAME}{settings.CONTAINER_PREFIX}"
+        redis=redis_client, prefix=f"{BOT_PROJECT_NAME}{settings.CONTAINER_PREFIX}"
     )
 
 

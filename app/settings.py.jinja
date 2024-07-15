@@ -52,6 +52,7 @@ class AppSettings(BaseSettings):
 
     # redis
     REDIS_DSN: str
+    REDIS_CONNECTION_POOL_SIZE: int = 15
 
     {% if add_worker -%}
     # healthcheck
