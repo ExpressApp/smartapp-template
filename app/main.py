@@ -5,7 +5,6 @@ from typing import Any, Dict, Optional
 
 from fastapi import FastAPI
 from pybotx import Bot, CallbackRepoProto
-from redis import asyncio as aioredis
 
 from app.api.routers import router
 from app.bot.bot import get_bot
@@ -30,7 +29,7 @@ async def startup(bot: Bot) -> None:
     bot.state.redis_repo = RedisRepo(
         redis=redis_client, prefix=f"{BOT_PROJECT_NAME}{settings.CONTAINER_PREFIX}"
     )
-
+    bot.state.redis = redis_client
 
 
 async def shutdown(bot: Bot) -> None:

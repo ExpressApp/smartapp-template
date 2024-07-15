@@ -26,6 +26,8 @@ async def check_db_connection(request: Request) -> Optional[str]:
             return str(exc)
 
     return None
+
+
 check_db_connection_dependency = Depends(check_db_connection)
 
 
