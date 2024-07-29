@@ -44,11 +44,11 @@ jobs:
 
       - name: Install copier
         run: |
-          pip install copier==7.1.0
+          pip install copier==9.3.1
           pip install copier-templates-extensions
           pip install pyyaml-include==1.4.1
           # hardcode pydantic version to avoid dependency conflict with copier
-          pip install pydantic==1.10.2
+          # pip install pydantic==1.10.2
 
       - name: Test image
         env:
@@ -62,7 +62,7 @@ jobs:
     runs-on: ubuntu-20.04
     strategy:
       matrix:
-        python-version: [ "3.8", "3.9", "3.10" ]
+        python-version: [ "3.9", "3.10", "3.11" ]
 
     services:
       postgres:
@@ -93,12 +93,12 @@ jobs:
 
       - name: Install copier
         run: |
-          pip install copier==7.1.0
+          pip install copier==9.3.1
           pip install copier-templates-extensions
           pip install pyyaml-include==1.4.1
           # hardcode pydantic version to avoid dependency conflict with copier
-          pip install pydantic==1.10.2
-          python -m copier --defaults . async-box-bot
+          # pip install pydantic==1.10.2
+          python -m copier copy --defaults --trust . async-box-bot
 
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v2
@@ -140,7 +140,7 @@ jobs:
     runs-on: ubuntu-20.04
     strategy:
       matrix:
-        python-version: [ "3.8", "3.9", "3.10" ]
+        python-version: [ "3.9", "3.10", "3.11" ]
 
     steps:
       - name: Checkout
@@ -148,12 +148,12 @@ jobs:
 
       - name: Install copier
         run: |
-          pip install copier==7.1.0
+          pip install copier==9.3.1
           pip install copier-templates-extensions
           pip install pyyaml-include==1.4.1
           # hardcode pydantic version to avoid dependency conflict with copier
-          pip install pydantic==1.10.2
-          python -m copier --defaults . async-box-bot
+          # pip install pydantic==1.10.2
+          python -m copier copy --defaults --trust . async-box-bot
 
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v2

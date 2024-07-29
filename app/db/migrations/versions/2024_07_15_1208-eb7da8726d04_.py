@@ -1,15 +1,15 @@
 """empty message
 
-Revision ID: d6e3a38b1fbd
+Revision ID: eb7da8726d04
 Revises: 
-Create Date: 2021-07-09 13:40:29.058513
+Create Date: 2024-07-15 12:08:48.694191
 
 Doc: https://alembic.sqlalchemy.org/en/latest/tutorial.html#create-a-migration-script
 """
 import sqlalchemy as sa
 from alembic import op
 
-revision = "d6e3a38b1fbd"
+revision = "eb7da8726d04"
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -20,8 +20,8 @@ def upgrade():
     op.create_table(
         "records",
         sa.Column("id", sa.Integer(), autoincrement=True, nullable=False),
-        sa.Column("record_data", sa.String(), nullable=True),
-        sa.PrimaryKeyConstraint("id"),
+        sa.Column("record_data", sa.String(), nullable=False),
+        sa.PrimaryKeyConstraint("id", name=op.f("pk_records")),
     )
     # ### end Alembic commands ###
 

@@ -1,13 +1,11 @@
 """SQLAlchemy helpers."""
 
-from asyncio import current_task
 from typing import Callable
 
 from sqlalchemy import MetaData
 from sqlalchemy.ext.asyncio import (
     AsyncEngine,
     AsyncSession,
-    async_scoped_session,
     async_sessionmaker,
     create_async_engine,
 )
@@ -44,18 +42,9 @@ engine: AsyncEngine = create_async_engine(
 )
 
 
-async def build_db_session_factory() -> AsyncSessionFactory:
-    await verify_db_connection(engine)
-
-    return async_scoped_session(
-        async_sessionmaker(bind=engine, expire_on_commit=False),
-        scopefunc=current_task,
-    )
-
-
-async def verify_db_connection(engine: AsyncEngine) -> None:
-    connection = await engine.connect()
-    await connection.close()
+db_session_factory = async_sessionmaker(
+    bind=engine, expire_on_commit=False, class_=AsyncSession
+)
 
 
 async def close_db_connections() -> None:
