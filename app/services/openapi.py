@@ -1,5 +1,4 @@
 """OpenAPI utils."""
-from subprocess import PIPE, STDOUT, run  # noqa: S404
 from typing import Any, Dict, Sequence, Tuple
 
 from fastapi.encoders import jsonable_encoder
@@ -16,13 +15,6 @@ from pydantic.schema import get_model_name_map
 from starlette.routing import BaseRoute
 
 from app.services.execute_rpc import security
-
-
-def get_project_version() -> str:
-    cmd = "poetry version --short"
-    return run(  # noqa: S603
-        cmd.split(), stdout=PIPE, stderr=STDOUT, text=True
-    ).stdout.strip("\n")
 
 
 def get_openapi_security_definitions(

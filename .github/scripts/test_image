@@ -4,7 +4,7 @@ set -ex
 
 PROJECT_NAME=smartapp-template
 
-python -m copier copy --defaults --trust . smartapp-template
+python -m copier --defaults . smartapp-template
 docker build -t $PROJECT_NAME $PROJECT_NAME
 
 # there should be added `--fail` option to curl command when healthcheck endpoint is added
