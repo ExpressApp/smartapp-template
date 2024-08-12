@@ -1,11 +1,11 @@
 """Handlers for default smartapp rpc methods."""
 from os import environ
+from subprocess import PIPE, STDOUT, run
 
 from pybotx_smart_logger import smart_log
 from pybotx_smartapp_rpc import RPCArgsBaseModel, RPCResultResponse, RPCRouter, SmartApp
 
 from app.db.record.repo import RecordRepo
-from app.services.openapi import get_project_version
 from app.smartapp.middlewares.db_session import db_session_middleware
 
 rpc = RPCRouter()
@@ -32,6 +32,7 @@ async def test_fail(smartapp: SmartApp) -> RPCResultResponse[str]:
 async def test_redis(smartapp: SmartApp) -> RPCResultResponse[str]:
     # This test just for coverage
     # Better to assert bot answers instead of using direct DB/Redis access
+
     redis_repo = smartapp.bot.state.redis_repo
 
     await redis_repo.set("test_key", "test_value")
@@ -43,6 +44,7 @@ async def test_redis(smartapp: SmartApp) -> RPCResultResponse[str]:
 async def test_db(smartapp: SmartApp) -> RPCResultResponse[str]:
     # This test just for coverage
     # Better to assert bot answers instead of using direct DB/Redis access
+
     # add text to history
     # example of using database
     record_repo = RecordRepo(smartapp.state.db_session)
@@ -67,4 +69,6 @@ async def test_redis_callback_repo(smartapp: SmartApp) -> RPCResultResponse[str]
 @rpc.method("debug:version")
 async def build_version(smartapp: SmartApp) -> RPCResultResponse[str]:
     """Show app version."""
-    return RPCResultResponse(get_project_version())
+    cmd = "poetry version --short"
+    output = run(cmd.split(), stdout=PIPE, stderr=STDOUT, text=True).stdout
+    return RPCResultResponse(output.strip("\n"))

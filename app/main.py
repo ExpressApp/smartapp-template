@@ -5,14 +5,14 @@ from typing import Any, Dict, Optional
 
 from fastapi import FastAPI
 from pybotx import Bot, CallbackRepoProto
+from redis import asyncio as aioredis
 
 from app.api.routers import router
 from app.bot.bot import get_bot
-from app.caching.redis_client import create_redis_client
 from app.caching.redis_repo import RedisRepo
 from app.constants import BOT_PROJECT_NAME
-from app.db.sqlalchemy import close_db_connections
-from app.services.openapi import custom_openapi, get_project_version
+from app.db.sqlalchemy import build_db_session_factory, close_db_connections
+from app.services.openapi import custom_openapi
 from app.services.static_files import StaticFilesCustomHeaders
 from app.settings import settings
 from app.smartapp.smartapp import smartapp
@@ -22,14 +22,12 @@ async def startup(bot: Bot) -> None:
     # -- Bot --
     await bot.startup()
 
+    # -- Database --
+    bot.state.db_session_factory = await build_db_session_factory()
+
     # -- Redis --
-    redis_client = create_redis_client(
-        max_connections=settings.REDIS_CONNECTION_POOL_SIZE
-    )
-    bot.state.redis_repo = RedisRepo(
-        redis=redis_client, prefix=f"{BOT_PROJECT_NAME}{settings.CONTAINER_PREFIX}"
-    )
-    bot.state.redis = redis_client
+    bot.state.redis = aioredis.from_url(settings.REDIS_DSN)
+    bot.state.redis_repo = RedisRepo(redis=bot.state.redis, prefix=BOT_PROJECT_NAME)
 
 
 async def shutdown(bot: Bot) -> None:
@@ -78,7 +76,7 @@ def get_application(
     def get_custom_openapi() -> Dict[str, Any]:  # noqa: WPS430
         return custom_openapi(
             title=BOT_PROJECT_NAME,
-            version=get_project_version(),
+            version="0.1.0",
             fastapi_routes=application.routes,
             rpc_router=smartapp.router,
             openapi_version="3.0.2",

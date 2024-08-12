@@ -19,10 +19,9 @@
 
 ## 1. Развертывание из шаблона и структура проекта
 
-Для развертывания проекта необходимо установить [copier](https://github.com/copier-org/copier) 
-и [copier-templates-extensions](https://github.com/copier-org/copier-templates-extensions) и выполнить команду:
+Для развертывания проекта необходимо установить [copier](https://github.com/copier-org/copier) и выполнить команду:
 ```bash
-$ copier copy --trust smartapp-template smartapp-example
+$ copier smartapp-template smartapp-example
 ```  
 
 Структура шаблонного SmartApp состоит из нескольких следующих пакетов и модулей:
