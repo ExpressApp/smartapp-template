@@ -62,7 +62,7 @@ jobs:
     runs-on: ubuntu-20.04
     strategy:
       matrix:
-        python-version: [ "3.8", "3.9", "3.10" ]
+        python-version: [ "3.9", "3.10", "3.11" ]
 
     services:
       postgres:
@@ -111,7 +111,7 @@ jobs:
 
       - name: Set up cache
         id: cache
-        uses: actions/cache@v2
+        uses: actions/cache@v4
         with:
           path: |
             ~/.cache/pip
@@ -123,6 +123,7 @@ jobs:
         run: |
           pip install poetry==${{ env.poetry_version }}
           poetry config virtualenvs.in-project true
+          poetry lock
           poetry install
 
       - name: Run tests
@@ -140,7 +141,7 @@ jobs:
     runs-on: ubuntu-20.04
     strategy:
       matrix:
-        python-version: [ "3.8", "3.9", "3.10" ]
+        python-version: [ "3.9", "3.10", "3.11" ]
 
     steps:
       - name: Checkout
@@ -166,7 +167,7 @@ jobs:
 
       - name: Set up cache
         id: cache
-        uses: actions/cache@v2
+        uses: actions/cache@v4
         with:
           path: |
             ~/.cache/pip
@@ -178,6 +179,7 @@ jobs:
         run: |
           pip install poetry==${{ env.poetry_version }}
           poetry config virtualenvs.in-project true
+          poetry lock
           poetry install
 
       - name: Run linters

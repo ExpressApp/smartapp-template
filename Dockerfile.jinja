@@ -34,7 +34,7 @@ ENV GIT_COMMIT_SHA=${CI_COMMIT_SHA}
 RUN pip install --user --no-cache-dir poetry==1.4.2 && \
     poetry config virtualenvs.in-project true
 
-COPY poetry.lock pyproject.toml ./
+COPY pyproject.toml ./
 
 {% if has_private_dependencies == "yes"  %}
 ARG CI_JOB_TOKEN=""
