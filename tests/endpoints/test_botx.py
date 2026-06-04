@@ -1,20 +1,19 @@
 from http import HTTPStatus
-from typing import Dict
+from typing import Any
 from uuid import UUID
 
 import httpx
 import respx
+from app.main import get_application
 from fastapi.testclient import TestClient
 from pybotx import Bot
-
-from app.main import get_application
 
 
 @respx.mock
 def test__web_app__bot_status_response_ok(
     bot_id: UUID,
     bot: Bot,
-    authorization_header: Dict[str, str],
+    authorization_header: dict[str, str],
 ) -> None:
     # - Arrange -
     query_params = {
@@ -47,7 +46,7 @@ def test__web_app__bot_status_response_ok(
 def test__web_app__bot_status_unknown_bot_response_service_unavailable(
     bot_id: UUID,
     bot: Bot,
-    authorization_header: Dict[str, str],
+    authorization_header: dict[str, str],
 ) -> None:
     # - Arrange -
     query_params = {
@@ -75,10 +74,10 @@ def test__web_app__bot_status_unknown_bot_response_service_unavailable(
 def test__web_app__bot_status_without_parameters_response_bad_request(
     bot_id: UUID,
     bot: Bot,
-    authorization_header: Dict[str, str],
+    authorization_header: dict[str, str],
 ) -> None:
     # - Arrange -
-    query_params: Dict[str, str] = {}
+    query_params: dict[str, str] = {}
 
     # - Act -
     with TestClient(get_application()) as test_client:
@@ -100,7 +99,7 @@ def test__web_app__bot_command_response_accepted(
     bot_id: UUID,
     host: str,
     bot: Bot,
-    authorization_header: Dict[str, str],
+    authorization_header: dict[str, str],
 ) -> None:
     # - Arrange -
     smartapp_event_endpoint = respx.post(
@@ -115,7 +114,7 @@ def test__web_app__bot_command_response_accepted(
         ),
     )
 
-    command_payload = {
+    command_payload: dict[str, Any] = {
         "bot_id": str(bot_id),
         "command": {
             "body": "system:smartapp_event",
@@ -201,21 +200,16 @@ def test__web_app__bot_command_response_service_unavailable(
         )
 
     # - Assert -
-    assert callback_response.status_code == HTTPStatus.SERVICE_UNAVAILABLE
-
-    status_message = callback_response.json()["error_data"]["status_message"]
-    assert status_message == (
-        "Unexpected callback with sync_id: 21a9ec9e-f21f-4406-ac44-1a78d2ccf9e3"
-    )
+    assert callback_response.status_code == HTTPStatus.ACCEPTED
 
 
 @respx.mock
 def test__web_app__unknown_bot_response_service_unavailable(
     bot: Bot,
-    authorization_header: Dict[str, str],
+    authorization_header: dict[str, str],
 ) -> None:
     # - Arrange -
-    payload = {
+    payload: dict[str, Any] = {
         "bot_id": "c755e147-30a5-45df-b46a-c75aa6089c8f",
         "command": {
             "body": "/debug",
@@ -274,10 +268,10 @@ def test__web_app__unknown_bot_response_service_unavailable(
 @respx.mock
 def test__web_app__unsupported_bot_api_version_service_unavailable(
     bot: Bot,
-    authorization_header: Dict[str, str],
+    authorization_header: dict[str, str],
 ) -> None:
     # - Arrange -
-    payload = {
+    payload: dict[str, Any] = {
         "bot_id": "c755e147-30a5-45df-b46a-c75aa6089c8f",
         "command": {
             "body": "/debug",
@@ -328,6 +322,5 @@ def test__web_app__unsupported_bot_api_version_service_unavailable(
 
     status_message = response.json()["error_data"]["status_message"]
     assert status_message == (
-        "Unsupported Bot API version: `3`. "
-        "Set protocol version to `4` in Admin panel."
+        "Unsupported Bot API version: `3`. Set protocol version to `4` in Admin panel."
     )

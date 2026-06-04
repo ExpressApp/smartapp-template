@@ -1,4 +1,5 @@
 """Configuration for smartapp instance."""
+
 from pybotx_smartapp_rpc import SmartAppRPC
 
 from app.smartapp.middlewares.smartlogger import smart_logger_middleware

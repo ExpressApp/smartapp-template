@@ -1,4 +1,5 @@
 """Handlers for default smartapp rpc methods."""
+
 from os import environ
 from subprocess import PIPE, STDOUT, run
 
@@ -70,5 +71,5 @@ async def test_redis_callback_repo(smartapp: SmartApp) -> RPCResultResponse[str]
 async def build_version(smartapp: SmartApp) -> RPCResultResponse[str]:
     """Show app version."""
     cmd = "poetry version --short"
-    output = run(cmd.split(), stdout=PIPE, stderr=STDOUT, text=True).stdout
+    output = run(cmd.split(), stdout=PIPE, stderr=STDOUT, text=True).stdout  # noqa: ASYNC221
     return RPCResultResponse(output.strip("\n"))

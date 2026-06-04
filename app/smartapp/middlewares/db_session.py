@@ -1,6 +1,6 @@
 """Middleware for creating db_session per-request."""
 
-from typing import Callable
+from collections.abc import Callable
 
 from pybotx_smartapp_rpc import RPCArgsBaseModel, RPCResponse, SmartApp
 

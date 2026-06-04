@@ -1,7 +1,5 @@
 """Endpoint healthcheck."""
 
-from typing import Optional
-
 from fastapi import APIRouter
 
 from app.api.dependencies.healthcheck import (
@@ -22,10 +20,10 @@ router = APIRouter()
 
 @router.get("/healthcheck")
 async def healthcheck(
-    redis_connection_error: Optional[str] = check_redis_connection_dependency,
-    db_connection_error: Optional[str] = check_db_connection_dependency,
+    redis_connection_error: str | None = check_redis_connection_dependency,
+    db_connection_error: str | None = check_db_connection_dependency,
     {% if add_worker -%}
-    worker_status_error: Optional[str] = check_worker_status_dependency,
+    worker_status_error: str | None = check_worker_status_dependency,
     {%- endif %}
 ) -> HealthCheckResponse:
     """Check the health of the bot and services."""

@@ -1,13 +1,12 @@
-from typing import Awaitable, Callable
+from collections.abc import Awaitable, Callable
 
 import pytest
-from pybotx_smartapp_rpc import RPCErrorResponse, RPCResponse, RPCResultResponse
-from sqlalchemy.ext.asyncio import AsyncSession
-
 from app.caching.redis_repo import RedisRepo
 from app.db.record.repo import RecordRepo
 from app.schemas.record import Record
 from app.smartapp.rpc_methods.common import EchoArgs
+from pybotx_smartapp_rpc import RPCErrorResponse, RPCResponse, RPCResultResponse
+from sqlalchemy.ext.asyncio import AsyncSession
 
 
 async def test_sum_method(

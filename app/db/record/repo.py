@@ -1,7 +1,5 @@
 """Record repo."""
 
-from typing import List, Optional
-
 from app.db.crud import CRUD
 from app.db.record.models import RecordModel
 from app.db.sqlalchemy import AsyncSession
@@ -35,19 +33,19 @@ class RecordRepo:
         record = await self._crud.get(pkey_val=record_id)
         return Record.from_orm(record)
 
-    async def get_or_none(self, record_id: int) -> Optional[Record]:
+    async def get_or_none(self, record_id: int) -> Record | None:
         record = await self._crud.get_or_none(pkey_val=record_id)
         if record:
             return Record.from_orm(record)
 
         return None
 
-    async def get_all(self) -> List[Record]:
+    async def get_all(self) -> list[Record]:
         """Get all objects."""
         records_in_db = await self._crud.all()
         return [Record.from_orm(record) for record in records_in_db]
 
-    async def filter_by_record_data(self, record_data: str) -> List[Record]:
+    async def filter_by_record_data(self, record_data: str) -> list[Record]:
         """Get all objects."""
         records_in_db = await self._crud.get_by_field(
             field="record_data",

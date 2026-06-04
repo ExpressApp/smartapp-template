@@ -1,11 +1,12 @@
 """RPC execution service."""
+
 import re
-from typing import Any, Dict, Tuple
+from typing import Any
 from uuid import UUID, uuid4
 
 from fastapi import HTTPException
 from fastapi.security import APIKeyHeader
-from pybotx import (  # noqa: WPS235
+from pybotx import (
     Bot,
     BotAccount,
     BotAccountWithSecret,
@@ -18,7 +19,7 @@ from pybotx import (  # noqa: WPS235
     UserNotFoundError,
     UserSender,
 )
-from pydantic import BaseModel, ValidationError
+from pydantic import BaseModel, Field, ValidationError
 from starlette.requests import Request
 from starlette.status import HTTP_400_BAD_REQUEST, HTTP_403_FORBIDDEN
 
@@ -36,14 +37,14 @@ DOCS = """Установка параметров для выполнение RP
 
 class RPCAuthConfig(BaseModel):
     bot_id: UUID = settings.BOT_CREDENTIALS[0].id
-    sender_huid: UUID = uuid4()
-    sender_udid: UUID = uuid4()
-    chat_id: UUID = uuid4()
+    sender_huid: UUID = Field(default_factory=uuid4)
+    sender_udid: UUID = Field(default_factory=uuid4)
+    chat_id: UUID = Field(default_factory=uuid4)
 
 
 async def expand_config(
     config: RPCAuthConfig, bot: Bot
-) -> Tuple[BotAccountWithSecret, UserFromSearch]:
+) -> tuple[BotAccountWithSecret, UserFromSearch]:
     bot_account = [bot for bot in bot.bot_accounts if bot.id == config.bot_id]
     if not bot_account:
         raise HTTPException(
@@ -73,7 +74,7 @@ async def expand_config(
 
 def event_factory(
     method_name: str,
-    payload: Dict[str, Any],
+    payload: dict[str, Any],
     bot_account: BotAccountWithSecret,
     user_info: UserFromSearch,
     user_udid: UUID,
@@ -127,7 +128,7 @@ class RPCAuth(APIKeyHeader):
         if not api_key:
             return RPCAuthConfig()
 
-        params = re.findall(self.PATTERN, api_key)  # noqa: WPS110
+        params = re.findall(self.PATTERN, api_key)
         if not params:
             raise HTTPException(
                 status_code=HTTP_403_FORBIDDEN, detail="Invalid RPC Auth format"
@@ -135,7 +136,10 @@ class RPCAuth(APIKeyHeader):
         try:
             config = RPCAuthConfig(**dict(params))
         except ValidationError as ex:
-            raise HTTPException(status_code=HTTP_403_FORBIDDEN, detail=str(ex))
+            raise HTTPException(
+                status_code=HTTP_403_FORBIDDEN,
+                detail=str(ex),
+            ) from ex
 
         return config
 

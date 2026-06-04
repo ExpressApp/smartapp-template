@@ -1,7 +1,8 @@
 """Application with configuration for events, routers and middleware."""
 
-from functools import partial
-from typing import Any, Dict, Optional
+from collections.abc import AsyncGenerator
+from contextlib import asynccontextmanager
+from typing import Any
 
 from fastapi import FastAPI
 from pybotx import Bot, CallbackRepoProto
@@ -41,9 +42,18 @@ async def shutdown(bot: Bot) -> None:
     await close_db_connections()
 
 
+@asynccontextmanager
+async def lifespan(_: FastAPI, bot: Bot) -> AsyncGenerator[None, None]:
+    await startup(bot)
+    try:
+        yield
+    finally:
+        await shutdown(bot)
+
+
 def get_application(
     add_internal_error_handler: bool = True,
-    callback_repo: Optional[CallbackRepoProto] = None,
+    callback_repo: CallbackRepoProto | None = None,
 ) -> FastAPI:
     """Create configured server application instance."""
 
@@ -51,12 +61,10 @@ def get_application(
 
     application = FastAPI(
         openapi_url="/openapi.json" if settings.DEBUG else None,
+        lifespan=lambda app: lifespan(app, bot),
     )
 
     application.state.bot = bot
-
-    application.add_event_handler("startup", partial(startup, bot))
-    application.add_event_handler("shutdown", partial(shutdown, bot))
 
     application.include_router(router)
 
@@ -73,7 +81,7 @@ def get_application(
         name="smartapp_files",
     )
 
-    def get_custom_openapi() -> Dict[str, Any]:  # noqa: WPS430
+    def get_custom_openapi() -> dict[str, Any]:
         return custom_openapi(
             title=BOT_PROJECT_NAME,
             version="0.1.0",

@@ -1,4 +1,5 @@
 """Execute RPC method endpoint."""
+
 from json import JSONDecodeError
 
 from fastapi import APIRouter, Depends, Request
@@ -47,9 +48,7 @@ async def rpc_execute(
     smartapp = SmartApp(bot, event.bot.id, event.chat.id, event)
     rpc_request = RPCRequest(method=method, type="smartapp_rpc", params=method_payload)
 
-    rpc_response = await smartapp_rpc._router.perform_rpc_request(  # noqa: WPS437
-        smartapp, rpc_request
-    )
+    rpc_response = await smartapp_rpc._router.perform_rpc_request(smartapp, rpc_request)
     if isinstance(rpc_response, RPCErrorResponse):
         return JSONResponse(
             status_code=HTTP_400_BAD_REQUEST,

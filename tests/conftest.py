@@ -1,17 +1,11 @@
 import logging
 from asyncio import Task
+from collections.abc import AsyncGenerator, Awaitable, Callable, Generator
 from datetime import datetime
 from http import HTTPStatus
 from pathlib import Path
 from typing import (
     Any,
-    AsyncGenerator,
-    Awaitable,
-    Callable,
-    Dict,
-    Generator,
-    List,
-    Optional,
 )
 from unittest.mock import AsyncMock
 from uuid import UUID, uuid4
@@ -21,6 +15,10 @@ import jwt
 import pytest
 import respx
 from alembic import config as alembic_config
+from app.caching.redis_repo import RedisRepo
+from app.main import get_application
+from app.settings import settings
+from app.smartapp.smartapp import smartapp as smartapp_rpc
 from asgi_lifespan import LifespanManager
 from pybotx import (
     Bot,
@@ -41,11 +39,6 @@ from pybotx_smartapp_rpc.empty_args import EmptyArgs
 from pybotx_smartapp_rpc.models.request import RPCRequest
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.caching.redis_repo import RedisRepo
-from app.main import get_application
-from app.settings import settings
-from app.smartapp.smartapp import smartapp as smartapp_rpc
-
 
 @pytest.fixture(autouse=True)
 def create_smartapp_files() -> None:
@@ -62,11 +55,11 @@ def db_migrations() -> Generator:
 
 
 @pytest.hookimpl(trylast=True)
-def pytest_collection_modifyitems(items: List[pytest.Function]) -> None:
+def pytest_collection_modifyitems(items: list[pytest.Function]) -> None:
     # We can't use autouse, because it appends fixture to the end
     # but session from db_session fixture must be closed before migrations downgrade
     for item in items:
-        item.fixturenames = ["db_migrations"] + item.fixturenames
+        item.fixturenames = ["db_migrations", *item.fixturenames]
 
 
 @pytest.fixture
@@ -84,7 +77,9 @@ def mock_authorization(
     host: str,
     bot_id: UUID,
 ) -> None:
-    respx.get(f"https://{host}/api/v2/botx/bots/{bot_id}/token",).mock(
+    respx.get(
+        f"https://{host}/api/v2/botx/bots/{bot_id}/token",
+    ).mock(
         return_value=httpx.Response(
             HTTPStatus.OK,
             json={
@@ -137,7 +132,7 @@ def chat_id() -> UUID:
 
 
 @pytest.fixture
-def authorization_token_payload(bot_id: UUID, host: str) -> Dict[str, Any]:
+def authorization_token_payload(bot_id: UUID, host: str) -> dict[str, Any]:
     return {
         "aud": [str(bot_id)],
         "exp": datetime(year=3000, month=1, day=1).timestamp(),
@@ -151,8 +146,8 @@ def authorization_token_payload(bot_id: UUID, host: str) -> Dict[str, Any]:
 @pytest.fixture
 def authorization_header(
     secret_key: str,
-    authorization_token_payload: Dict[str, Any],
-) -> Dict[str, str]:
+    authorization_token_payload: dict[str, Any],
+) -> dict[str, str]:
     token = jwt.encode(
         payload=authorization_token_payload,
         key=secret_key,
@@ -169,8 +164,8 @@ def incoming_message_factory(
     def factory(
         *,
         body: str = "",
-        ad_login: Optional[str] = None,
-        ad_domain: Optional[str] = None,
+        ad_login: str | None = None,
+        ad_domain: str | None = None,
     ) -> IncomingMessage:
         return IncomingMessage(
             bot=BotAccount(
@@ -231,7 +226,7 @@ def loguru_caplog(
 ) -> Generator[pytest.LogCaptureFixture, None, None]:
     # https://github.com/Delgan/loguru/issues/59
 
-    class PropogateHandler(logging.Handler):  # noqa: WPS431
+    class PropogateHandler(logging.Handler):
         def emit(self, record: logging.LogRecord) -> None:
             logging.getLogger(record.name).handle(record)
 
@@ -249,8 +244,8 @@ def smartapp_event_factory(
 ) -> Callable[..., SmartAppEvent]:
     def factory(
         *,
-        data: Optional[Dict[str, Any]] = None,
-        files: Optional[List[File]] = None,
+        data: dict[str, Any] | None = None,
+        files: list[File] | None = None,
     ) -> SmartAppEvent:
         return SmartAppEvent(
             bot=BotAccount(
@@ -302,8 +297,8 @@ def perform_rpc_request(
     async def performer(
         *,
         method: str,
-        args: Optional[RPCArgsBaseModel] = None,
-        files: Optional[List[File]] = None,
+        args: RPCArgsBaseModel | None = None,
+        files: list[File] | None = None,
     ) -> RPCResponse:
         if not args:
             args = EmptyArgs()
@@ -311,9 +306,13 @@ def perform_rpc_request(
         event = smartapp_event_factory(files=files)
 
         smartapp = SmartApp(bot, event.bot.id, event.chat.id, event)
-        rpc_request = RPCRequest(method=method, type="smartapp_rpc", params=args.dict())
+        rpc_request = RPCRequest(
+            method=method,
+            type="smartapp_rpc",
+            params=args.model_dump(),
+        )
 
-        return await smartapp_rpc._router.perform_rpc_request(  # noqa: WPS437
+        return await smartapp_rpc._router.perform_rpc_request(
             smartapp,
             rpc_request,
         )
