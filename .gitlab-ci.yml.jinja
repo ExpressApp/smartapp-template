@@ -41,7 +41,7 @@
 
 .install_dependencies: &install_dependencies
   - echo -e "machine ${GIT_HOST}\nlogin gitlab-ci-token\npassword ${CI_JOB_TOKEN}" > ~/.netrc
-  - pip install -q poetry
+  - pip install -q poetry==2.1.2
   - poetry config virtualenvs.in-project true
   - poetry install
 
@@ -76,7 +76,7 @@ default:
   interruptible: true
 
 lint:
-  image: python:3.10
+  image: python:3.13
   stage: check
   tags:
     - docker
@@ -87,7 +87,7 @@ lint:
     - poetry run ./scripts/lint
 
 test:
-  image: python:3.10
+  image: python:3.13
   stage: check
   tags:
     - docker
