@@ -1,8 +1,9 @@
 """Repository for work with redis."""
 
 import hashlib
-import pickle  # noqa: S403
-from typing import Any, Hashable, Optional
+import pickle
+from collections.abc import Hashable
+from typing import Any
 
 from redis import asyncio as aioredis
 
@@ -11,17 +12,17 @@ class RedisRepo:
     def __init__(
         self,
         redis: aioredis.Redis,
-        prefix: Optional[str] = None,
-        expire: Optional[int] = None,
+        prefix: str | None = None,
+        expire: int | None = None,
     ) -> None:
         self._redis = redis
         self._prefix = prefix
         self._expire = expire
         self._delimiter = "_"
 
-    async def ping(self) -> Optional[str]:
+    async def ping(self) -> str | None:
         try:
-            await self._redis.ping()
+            await self._redis.ping()  # type: ignore[misc]
         except Exception as exc:
             return str(exc)
 
@@ -35,7 +36,7 @@ class RedisRepo:
         return pickle.loads(cached_data)  # noqa: S301
 
     async def set(
-        self, key: Hashable, storage_value: Any, expire: Optional[int] = None
+        self, key: Hashable, storage_value: Any, expire: int | None = None
     ) -> None:
         if expire is None:
             expire = self._expire
@@ -52,9 +53,12 @@ class RedisRepo:
         return storage_value
 
     def _key(self, arg: Hashable) -> str:
-        if self._prefix is not None:
-            prefix = self._prefix + self._delimiter
-        else:
-            prefix = ""
+        prefix = self._prefix + self._delimiter if self._prefix is not None else ""
 
-        return prefix + hashlib.md5(pickle.dumps(arg)).hexdigest()  # noqa: S303
+        return (
+            prefix
+            + hashlib.md5(
+                pickle.dumps(arg),
+                usedforsecurity=False,
+            ).hexdigest()
+        )

@@ -1,6 +1,7 @@
 """Healthcheck service bot."""
+
 from dataclasses import dataclass
-from typing import List, Literal, Optional, Union
+from typing import Literal
 
 from pydantic import BaseModel
 
@@ -10,7 +11,7 @@ from app.schemas.enums import HealthCheckStatuses
 @dataclass
 class HealthCheckServiceResult:
     name: str
-    error: Optional[str]
+    error: str | None
 
 
 class HealthCheckSucceed(BaseModel):
@@ -24,17 +25,17 @@ class HealthCheckFailed(BaseModel):
     status: Literal[HealthCheckStatuses.ERROR] = HealthCheckStatuses.ERROR
 
 
-HealthCheckResult = Union[HealthCheckSucceed, HealthCheckFailed]
+HealthCheckResult = HealthCheckSucceed | HealthCheckFailed
 
 
 class HealthCheckResponse(BaseModel):
-    status: Optional[HealthCheckStatuses]
-    services: List[HealthCheckResult]
+    status: HealthCheckStatuses | None
+    services: list[HealthCheckResult]
 
 
 class HealthCheckResponseBuilder:
     def __init__(self) -> None:
-        self._healthcheck_results: List[HealthCheckServiceResult] = []
+        self._healthcheck_results: list[HealthCheckServiceResult] = []
 
     def add_healthcheck_result(self, service: HealthCheckServiceResult) -> None:
         self._healthcheck_results.append(service)

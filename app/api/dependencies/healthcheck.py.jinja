@@ -3,7 +3,6 @@
 {% if add_worker -%}
 from asyncio.exceptions import TimeoutError
 {%- endif %}
-from typing import Optional
 
 from fastapi import Depends, Request
 from pybotx import Bot
@@ -15,7 +14,7 @@ from app.worker.worker import queue
 {%- endif %}
 
 
-async def check_db_connection(request: Request) -> Optional[str]:
+async def check_db_connection(request: Request) -> str | None:
     assert isinstance(request.app.state.bot, Bot)
 
     bot = request.app.state.bot
@@ -33,7 +32,7 @@ async def check_db_connection(request: Request) -> Optional[str]:
 check_db_connection_dependency = Depends(check_db_connection)
 
 
-async def check_redis_connection(request: Request) -> Optional[str]:
+async def check_redis_connection(request: Request) -> str | None:
     assert isinstance(request.app.state.bot, Bot)
 
     bot = request.app.state.bot
@@ -44,7 +43,7 @@ check_redis_connection_dependency = Depends(check_redis_connection)
 {%- if add_worker %}
 
 
-async def check_worker_status() -> Optional[str]:
+async def check_worker_status() -> str | None:
     job = await queue.enqueue("healthcheck")
 
     if not job:

@@ -221,22 +221,10 @@ $ ./scripts/format
 $ ./scripts/lint
 ```
 
-#### Описание 
-* [black](https://github.com/psf/black)
+#### Описание
+* [ruff](https://github.com/astral-sh/ruff)
 
-Используется для форматирования кода к единому стилю: разбивает длинные строки, следит за отступами и импортами.
-
-> :warning: Примечание  
-> В некоторых моментах isort конфликтует с black. Конфликт решается настройкой файла конфигурации **`setup.cfg`**.
-
-* [isort](https://github.com/timothycrosley/isort)
-
-Используется для сортировки импортов. Сначала импорты из стандартных библиотек python, затем из внешних библиотек и в конце из модулей данного проекта.
-Между собой импорты сортируются по алфавиту.
-
-* [autoflake](https://github.com/myint/autoflake)
-
-Используется для удаления неиспользуемых импортов и переменных.
+Используется для форматирования кода, сортировки импортов, удаления части автоматически исправимых проблем и статической проверки. Заменяет `black`, `isort`, `autoflake`, `flake8` и `wemake-python-styleguide`.
 
 * [mypy](https://github.com/python/mypy)
 
@@ -269,22 +257,15 @@ warn_required_dynamic_aliases = True
 warn_untyped_fields = True
 ```
 
-* [wemake-python-styleguide](https://github.com/wemake-services/wemake-python-styleguide)
-
-Используется для комплексной проверки. Анализирует допустимые имена перменных и их длину, сложность вложенных конструкций, правильную обработку исключений и многое другое. Для каждого типа ошибок есть свой уникальный номер, объяснение, почему так делать не стоит, и объяснение, как делать правильно. Список ошибок можно посмотреть [тут](https://wemake-python-stylegui.de/en/latest/pages/usage/violations/index.html).
-
 > :information_source: Инфо  
 > В некоторых редких случаях можно игнорировать правила линтера. Для этого необходимо либо прописать комментарий с меткой `noqa` на проблемной строке:
 > ```python3
-> var = problem_function()  # noqa: WPS999 
+> var = problem_function()  # noqa: RUF999
 > ```
-> либо указать `ignore` ошибки в **`setup.cfg`**:
-> ```
-> [flake8]
-> # ...
-> ignore =
->     # f-strings are useful
->     WPS305,
+> либо указать `ignore` ошибки в **`pyproject.toml`**:
+> ```toml
+> [tool.ruff.lint]
+> ignore = ["RUF999"]
 > ```
 > Также можно исключать модули и пакеты.
 

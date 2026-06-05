@@ -1,8 +1,7 @@
 """Repository for work callbacks with redis."""
 
 import asyncio
-import pickle  # noqa: S403
-from typing import Dict, Optional
+import pickle
 from uuid import UUID
 
 from pybotx import CallbackNotReceivedError, CallbackRepoProto
@@ -15,12 +14,12 @@ class CallbackRedisRepo(CallbackRepoProto):
     def __init__(
         self,
         redis: aioredis.Redis,
-        prefix: Optional[str] = None,
+        prefix: str | None = None,
     ):
         self._redis = redis
         self._prefix = prefix or ""
-        self._pubsubs: Dict[UUID, aioredis.client.PubSub] = {}
-        self._futures: Dict[UUID, asyncio.Future] = {}
+        self._pubsubs: dict[UUID, aioredis.client.PubSub] = {}
+        self._futures: dict[UUID, asyncio.Future] = {}
 
     async def create_botx_method_callback(
         self,
@@ -95,3 +94,5 @@ class CallbackRedisRepo(CallbackRepoProto):
         async for message in channel.listen():
             if message["type"] == "message":
                 return pickle.loads(message["data"])  # noqa: S301
+
+        raise RuntimeError("Callback channel has been closed")

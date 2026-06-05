@@ -1,5 +1,6 @@
 """Middlewares to log all RPC requests using smart logger wrapper."""
-from typing import Any, Dict, Optional
+
+from typing import Any
 
 from pybotx_smart_logger import wrap_smart_logger
 from pybotx_smartapp_rpc import HandlerWithArgs, RPCArgsBaseModel, RPCResponse, SmartApp
@@ -17,7 +18,7 @@ def is_enabled_debug(smartapp: SmartApp) -> bool:
 async def smart_logger_middleware(
     smartapp: SmartApp, rpc_arguments: RPCArgsBaseModel, call_next: HandlerWithArgs
 ) -> RPCResponse:
-    raw_command: Optional[Dict[str, Any]] = None
+    raw_command: dict[str, Any] | None = None
     if smartapp.event:
         raw_command = smartapp.event.raw_command
     async with wrap_smart_logger(

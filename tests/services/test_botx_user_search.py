@@ -2,9 +2,8 @@ from unittest.mock import AsyncMock
 from uuid import UUID
 
 import pytest
-from pybotx import Bot, UserFromSearch, UserKinds, UserNotFoundError
-
 from app.services.botx_user_search import UserIsBotError, search_user_on_each_cts
+from pybotx import Bot, UserFromSearch, UserKinds, UserNotFoundError
 
 
 async def test_search_user_on_each_cts_user_is_bot_error_raised(
@@ -77,4 +76,4 @@ async def test_search_user_on_each_cts_suceed(
 
     found_user, bot_account = search_result
     assert found_user is user
-    assert bot_account is list(bot.bot_accounts)[0]
+    assert bot_account is next(iter(bot.bot_accounts))

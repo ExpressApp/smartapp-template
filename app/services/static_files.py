@@ -1,4 +1,5 @@
 """Static smartapp files."""
+
 import os
 import typing
 
@@ -15,11 +16,11 @@ class StaticFilesCustomHeaders(StaticFiles):
     def __init__(
         self,
         *,
-        directory: PathLike = None,
-        packages: typing.List[str] = None,
+        directory: PathLike | None = None,
+        packages: list[str] | None = None,
         html: bool = False,
         check_dir: bool = True,
-        headers: dict = None,
+        headers: dict | None = None,
     ) -> None:
         """Save custom headers."""
         super().__init__(

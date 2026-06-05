@@ -1,8 +1,9 @@
 """Module for enums."""
+
 from enum import Enum
 
 
-class StrEnum(str, Enum):  # noqa: WPS600
+class StrEnum(str, Enum):
     """Base enum."""
 
 

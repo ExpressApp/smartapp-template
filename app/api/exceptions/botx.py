@@ -1,8 +1,9 @@
 """Handlers for BotX request exceptions."""
 
+from collections.abc import Callable
 from functools import wraps
 from http import HTTPStatus
-from typing import Any, Callable
+from typing import Any
 
 from fastapi.responses import JSONResponse
 from pybotx import (
@@ -18,10 +19,10 @@ from app.logger import logger
 from app.settings import settings
 
 
-def handle_exceptions(func: Callable) -> Callable:  # noqa: WPS212
+def handle_exceptions(func: Callable) -> Callable:
     @wraps(func)
     async def wrapper(*args: Any, **kwargs: Any) -> JSONResponse:
-        try:  # noqa: WPS225
+        try:
             return await func(*args, **kwargs)
         except ValueError:
             error_label = "Bot command validation error"

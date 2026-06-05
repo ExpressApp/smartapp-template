@@ -5,8 +5,8 @@ from pybotx import (
     HandlerCollector,
     IncomingMessage,
     SmartAppEvent,
-    SyncSmartAppEventResponsePayload,
 )
+from pybotx.models.sync_smartapp_event import BotAPISyncSmartAppEventResponse
 
 from app.smartapp.smartapp import smartapp
 
@@ -21,7 +21,7 @@ async def handle_smartapp_event(event: SmartAppEvent, bot: Bot) -> None:
 @collector.sync_smartapp_event
 async def handle_sync_smartapp_event(
     event: SmartAppEvent, bot: Bot
-) -> SyncSmartAppEventResponsePayload:
+) -> BotAPISyncSmartAppEventResponse:
     return await smartapp.handle_sync_smartapp_event(event, bot)
 
 

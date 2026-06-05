@@ -1,10 +1,13 @@
 import asyncio
 import os
+from collections.abc import AsyncGenerator, Callable
 from http import HTTPStatus
-from typing import AsyncGenerator, Callable
 
 import httpx
 import pytest
+from app.caching.callback_redis_repo import CallbackRedisRepo
+from app.main import get_application
+from app.settings import settings
 from asgi_lifespan import LifespanManager
 from pybotx import (
     Bot,
@@ -16,9 +19,6 @@ from pybotx import (
 from redis import asyncio as aioredis
 from respx import MockRouter
 
-from app.caching.callback_redis_repo import CallbackRedisRepo
-from app.main import get_application
-from app.settings import settings
 from tests.conftest import mock_authorization
 
 pytestmark = pytest.mark.xfail(
@@ -125,11 +125,13 @@ async def test_callback_redis_repo_unsuccessful_callback(
             },
             verify_request=False,
         )
+        await asyncio.sleep(0.1)
+
         with pytest.raises(BotXMethodFailedCallbackReceivedError) as exc:
             await task
 
     # - Assert -
-    assert "test_reason" in str(exc.value)  # noqa: WPS441
+    assert "test_reason" in str(exc.value)
 
 
 async def test_callback_redis_repo_no_callback(
@@ -164,7 +166,7 @@ async def test_callback_redis_repo_no_callback(
             await task
 
     # - Assert -
-    assert "hasn't been received" in str(exc.value)  # noqa: WPS441
+    assert "hasn't been received" in str(exc.value)
 
 
 async def test_callback_redis_repo_wait_callback(
