@@ -4,7 +4,7 @@ FROM python:3.13.11-alpine
 
 # Install system-wide dependencies
 RUN apk update && \
-    apk add --no-cache --clean-protected git curl gcc python3-dev && \
+    apk add --no-cache --clean-protected git curl build-base && \
     rm -rf /var/cache/apk/*
 
 # Create user for app
