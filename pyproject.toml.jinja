@@ -31,9 +31,7 @@ asyncpg = ">=0.31.0,<1.0.0"  # DB backend for application
 psycopg2-binary = ">=2.9.11,<3.0.0"  # DB backend for alembic (migration tool)
 
 redis = ">=7.4.0,<8.0.0"
-{% if add_worker -%}
 saq = { version = ">=0.26.4,<1.0.0", extras = ["hiredis"] }
-{%- endif %}
 
 [tool.poetry.group.dev.dependencies]
 mypy = "2.1.0"
